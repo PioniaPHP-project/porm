@@ -14,18 +14,5 @@
  *
  **/
 
-//use Porm\Porm;
-//use Porm\queryBuilder\Parg;
 
 require __DIR__ . '/../vendor/autoload.php';
-
-//$dt = Porm::from('qa_criteria');
-//
-//$dt->getConnection()->beginDebug();
-//
-//$dt->filter()->where(Parg::gt("id", 10))->all();
-//
-//var_dump($dt->getConnection()->debugLog());
-//
-//
-//var_dump($dt);
