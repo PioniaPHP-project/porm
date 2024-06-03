@@ -1,0 +1,23 @@
+{
+    "name": "jet-php/jql",
+    "description": "Query Language for JetPhp",
+    "type": "library",
+    "require": {
+        "ext-pdo": "*",
+        "catfan/medoo": "v2.1.12"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Porm\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "jet2018",
+            "email": "ezrajet9@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

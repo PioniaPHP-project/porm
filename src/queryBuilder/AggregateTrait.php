@@ -1,0 +1,80 @@
+<?php
+
+/**
+ * PORM - Database querying tool for pionia framework.
+ *
+ * This package can be used as is or with the Pionia Framework. Anyone can reproduce and update this as they see fit.
+ *
+ * @copyright 2024,  Pionia Project - Jet Ezra
+ *
+ * @author Jet Ezra
+ * @version 1.0.0
+ * @link https://pionia.netlify.app/
+ * @license https://opensource.org/licenses/MIT
+ *
+ **/
+
+namespace Porm\queryBuilder;
+
+trait AggregateTrait
+{
+    /**
+     * @param string|null $column
+     * @param array|null $where
+     * @return int|null
+     * @see Core::count()
+     */
+    public function count(?string $column = null, ?array $where = null): ?int
+    {
+        $this->where[] = $where;
+        return $this->connection->count($this->table, $this->join, $column, $this->where);
+    }
+
+    /**
+     * @param string $column
+     * @param array|null $where
+     * @return string|null
+     * @see Core::sum()
+     */
+    public function sum(string $column, ?array $where): ?string
+    {
+        $this->where[] = $where;
+        return $this->connection->sum($this->table, $column, $this->where);
+    }
+
+    /**
+     * @param string $column
+     * @param array|null $where
+     * @return string|null
+     * @see Core::avg()
+     */
+    public function avg(string $column, ?array $where): ?string
+    {
+        $this->where[] = $where;
+        return $this->connection->avg($this->table, $this->join, $column, $this->where);
+    }
+
+    /**
+     * @param string $column
+     * @param array|null $where
+     * @return string|null
+     * @see Core::max()
+     */
+    public function max(string $column, ?array $where): ?string
+    {
+        $this->where[] = $where;
+        return $this->connection->max($this->table, $this->join, $column, $this->where);
+    }
+
+    /**
+     * @param string $column
+     * @param array|null $where
+     * @return string|null
+     * @see Core::min()
+     */
+    public function min(string $column, ?array $where): ?string
+    {
+        $this->where[] = $where;
+        return $this->connection->min($this->table, $this->join, $column, $this->where);
+    }
+}
