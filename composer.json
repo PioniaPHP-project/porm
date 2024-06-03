@@ -1,23 +1,34 @@
 {
-    "name": "jet-php/jql",
-    "description": "Query Language for JetPhp",
-    "type": "library",
-    "require": {
-        "ext-pdo": "*",
-        "catfan/medoo": "v2.1.12"
-    },
-    "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "Porm\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "jet2018",
-            "email": "ezrajet9@gmail.com"
-        }
-    ],
-    "minimum-stability": "stable",
-    "prefer-stable": true
+  "name": "pionia/porm",
+  "description": "Query Language for Pionia Framework",
+  "keywords": [
+    "pionia",
+    "porm",
+    "query",
+    "language",
+    "orm",
+    "database",
+    "medoo",
+    "pdo",
+    "php"
+  ],
+  "type": "library",
+  "require": {
+    "ext-pdo": "*",
+    "catfan/medoo": "v2.1.12"
+  },
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Porm\\": "src/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Jet Ezra - Pionia",
+      "email": "ezrajet9@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "prefer-stable": true
 }
