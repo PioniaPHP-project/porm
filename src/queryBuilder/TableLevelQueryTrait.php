@@ -25,6 +25,7 @@ use Porm\core\Database;
 trait TableLevelQueryTrait
 {
     use AggregateTrait;
+    use ParseTrait;
 
     /**
      * This checks if the table has a record that matches the where clause
@@ -33,8 +34,8 @@ trait TableLevelQueryTrait
      *
      * @throws Exception
      * @example ```php
-     *      $res1 = Table::from('users')->has(1); // with integer where clause that defaults to id = 1
-     *      $res2 = Table::from('users')->has(['id' => 1]); // with array where clause
+     *      $res1 = Porm::from('users')->has(1); // with integer where clause that defaults to id = 1
+     *      $res2 = Porm::from('users')->has(['id' => 1]); // with array where clause
      * ```
      *
      */
@@ -55,9 +56,9 @@ trait TableLevelQueryTrait
      * Fetches random n items from the table, default to 1
      *
      * @example ```php
-     *     $res1 = Table::from('users')->random(); // fetches a random user
-     *     $res2 = Table::from('users')->random(5); // fetches 5 random users
-     *     $res3 = Table::from('users')->random(5, ['last_name' => 'Pionia']); // fetches 5 random users with last name Pionia
+     *     $res1 = Porm::from('users')->random(); // fetches a random user
+     *     $res2 = Porm::from('users')->random(5); // fetches 5 random users
+     *     $res3 = Porm::from('users')->random(5, ['last_name' => 'Pionia']); // fetches 5 random users with last name Pionia
      * ```
      * @param ?int $limit
      * @param array|null $where
@@ -78,6 +79,7 @@ trait TableLevelQueryTrait
         }
 
         $result = $this->connection->rand($this->table, $this->columns, $where);
+        $this->resultSet = $result;
         if ($limit === 1) {
             $this->resultSet = $this->resultSet[0];
             return $this->asObject();
@@ -93,7 +95,7 @@ trait TableLevelQueryTrait
      *
      * @throws Exception
      * @example ```php
-     *    $res = Table::from('users')->save(['first_name' => 'John', 'last_name' => 'Doe']);
+     *    $res = Porm::from('users')->save(['first_name' => 'John', 'last_name' => 'Doe']);
      *    echo $res->id;
      * ```
      *
@@ -103,9 +105,20 @@ trait TableLevelQueryTrait
         $this->checkFilterMode("You cannot save at this point in the query, check the usage of the `save()`
          method in the query builder for " . $this->table);
 
-        $this->database()->insert($this->table, $data);
-        $id = $this->database()->id();
+        $this->boot()->insert($this->table, $data);
+        $id = $this->boot()->id();
         return $this->get($id);
+    }
+
+    public function update(array $data, array|int|string $where, ?string $idField = 'id')
+    {
+        $this->checkFilterMode("You cannot update at this point in the query, check the usage of the `update()`
+         method in the query builder for " . $this->table);
+        if (is_int($where) || is_string($where)) {
+            $where = [$idField => $where];
+        }
+        $this->where['AND'] = $where;
+        return $this->connection->update($this->table, $data, $this->where);
     }
 
     /**
@@ -113,7 +126,7 @@ trait TableLevelQueryTrait
      * You can call it as many times as you want before calling filter.
      * @throws Exception
      */
-    private function join(string $joinType, $joinTable, string|array $joinColumns, ?string $alias): static
+    public function join(string $joinType, string $joinPorm, string|array $joinColumns, ?string $alias = null): static
     {
         $this->allowFilterOnly = true;
 
@@ -121,20 +134,20 @@ trait TableLevelQueryTrait
             throw new Exception('Invalid join type');
         }
 
-        if ($joinTable === $this->table && $alias === null) {
-            throw new Exception('Cannot join a table to itself without an alias, please provide an alias for ' . $joinTable . ' table');
+        if ($joinPorm === $this->table && $alias === null) {
+            throw new Exception('Cannot join a table to itself without an alias, please provide an alias for ' . $joinPorm . ' table');
         }
 
         $result = match ($joinType) {
-            JoinTypes::INNER => ["[<>]$joinTable"],
-            JoinTypes::LEFT => "[<]$joinTable",
-            JoinTypes::RIGHT => "[>]$joinTable",
-            JoinTypes::FULL => "[><]$joinTable",
+            JoinTypes::INNER => ["[<>]$joinPorm"],
+            JoinTypes::LEFT => "[<]$joinPorm",
+            JoinTypes::RIGHT => "[>]$joinPorm",
+            JoinTypes::FULL => "[><]$joinPorm",
         };
         if ($alias) {
             $result .= "( $alias )";
         }
-        $this->join = array_merge($this->join, [$result => $joinColumns]);
+        $this->join = [$this->join, $result => $joinColumns];
         return $this;
     }
 
@@ -164,24 +177,29 @@ trait TableLevelQueryTrait
 
     /**
      * Fetches a single item from the database
+     *
+     *
+     *
      * @param int|array $where
+     * @param string|null $idField defaults to id, pass this if you want to use a different field as the id other than id
      * @return object|array|null
      * @throws Exception
      * @example ```php
-     *    $res1 = Table::from('users')->get(1); // fetches a user with id 1
-     *    $res2 = Table::from('users')->get(['id' => 1]); // fetches a user with id 1
-     *    $res3 = Table::from('users')->get(['last_name' => 'Pionia', 'first_name'=>'Framework']); // fetches a user with last name Pionia and first_name as Framework
+     *    $res1 = Porm::from('users')->get(1); // fetches a user with id 1
+     *    $res2 = Porm::from('users')->get(['id' => 1]); // fetches a user with id 1
+     *    $res3 = Porm::from('users')->get(['last_name' => 'Pionia', 'first_name'=>'Framework']); // fetches a user with last name Pionia and first_name as Framework
      * ```
      */
-    public function get(int|array $where): object|array|null
+    public function get(int|array|null $where = null, ?string $idField = 'id'): object|array|null
     {
         $this->checkFilterMode("You cannot call `get()` at this point in the query, check the usage of the `get()`
          method in the query builder for " . $this->table);
 
         if (is_int($where)) {
-            $where = ['id' => $where];
+            $where = [$idField => $where];
         }
-        $result = $this->connection->get($this->table, $this->columns, $where);
+        $this->where = array_merge($this->where, ['AND' => $where]);
+        $result = $this->runGet();
         $this->resultSet = $result;
         if ($this->resultSet) {
             return $this->asObject();
@@ -207,9 +225,9 @@ trait TableLevelQueryTrait
      * @return Builder
      * @throws Exception
      * @example ```php
-     *  $res1 = Table::from('users')->filter(['id' => 1])->get(); // fetches a user with id 1
-     *  $res2 = Table::from('users')->filter(['last_name' => 'Pionia', 'first_name'=>'Framework'])->all(); // fetches all users with last name Pionia and first_name as Framework
-     *  $res2 = Table::from('users')->filter(['last_name' => 'Pionia'])->limit(1)->startAt(2); // fetches a user with last name Pionia and first_name as Framework
+     *  $res1 = Porm::from('users')->filter(['id' => 1])->get(); // fetches a user with id 1
+     *  $res2 = Porm::from('users')->filter(['last_name' => 'Pionia', 'first_name'=>'Framework'])->all(); // fetches all users with last name Pionia and first_name as Framework
+     *  $res2 = Porm::from('users')->filter(['last_name' => 'Pionia'])->limit(1)->startAt(2); // fetches a user with last name Pionia and first_name as Framework
      * ```
      */
     public function filter(?array $where = []): Builder
@@ -221,13 +239,13 @@ trait TableLevelQueryTrait
     /**
      * This defines the table column names to return from the database
      * @param string|array $columns The columns to select defaults to * for all.
-     * @return PormObject The current Table object
+     * @return PormObject The current Porm object
      * @throws Exception
      *
      * @example ```php
-     *   $res1 = Table::from('users')->columns('first_name')->get(1); // fetches the first name of the user with id 1
-     *   $res2 = Table::from('users')->columns(['first_name', 'last_name'])->get(1); // fetches the first name and last name of the user with id 1
-     *   $res3 = Table::from('users')->columns(['first_name', 'last_name'])->filter(['last_name' => 'Pionia'])->all(); // fetches the first name and last name of all users with last name Pionia
+     *   $res1 = Porm::from('users')->columns('first_name')->get(1); // fetches the first name of the user with id 1
+     *   $res2 = Porm::from('users')->columns(['first_name', 'last_name'])->get(1); // fetches the first name and last name of the user with id 1
+     *   $res3 = Porm::from('users')->columns(['first_name', 'last_name'])->filter(['last_name' => 'Pionia'])->all(); // fetches the first name and last name of all users with last name Pionia
      * ```
      */
     public function columns(string|array $columns = "*"): static
@@ -257,10 +275,10 @@ trait TableLevelQueryTrait
 
 
     /**
-     * This sets up the database connection to use internally. It is called when the Table class is being set up.
+     * This sets up the database connection to use internally. It is called when the Porm class is being set up.
      * @throws Exception
      */
-    private function database(): Core
+    private function boot(): Core
     {
         if ($this->using) {
             $this->connection = Database::builder($this->using);
@@ -278,22 +296,19 @@ trait TableLevelQueryTrait
      * @return PDOStatement|null
      * @throws Exception
      * @example ```php
-     *   $res1 = Table::from('users')->delete(1); // deletes a user with id 1
-     *   $res2 = Table::from('users')->delete(['name' => 'John']); // deletes a user with name John
+     *   $res1 = Porm::from('users')->delete(1); // deletes a user with id 1
+     *   $res2 = Porm::from('users')->delete(['name' => 'John']); // deletes a user with name John
      * ```
      *
      */
-    public function deleteOne(int|array $where): ?PDOStatement
+    public function delete(int|array|string $where, ?string $idField = 'id'): ?PDOStatement
     {
         $this->checkFilterMode("You cannot delete at this point in the query, check the usage of the `delete()`
          method in the query builder for " . $this->table);
 
         if (is_int($where)) {
-            $where = ['id' => $where];
+            $where = [$idField => $where];
         }
-
-        $where['LIMIT'] = 1;
-
         return $this->connection->delete($this->table, $where);
     }
 
@@ -303,8 +318,8 @@ trait TableLevelQueryTrait
      * @return PDOStatement|null
      * @throws Exception
      * @example ```php
-     *  $res1 = Table::from('users')->deleteAll(['name' => 'John']); // deletes all users with name John
-     *  $res2 = Table::from('users')->deleteAll(['last_name' => 'Pionia', 'first_name'=>'Framework']); // deletes all users with last name Pionia and first_name as Framework
+     *  $res1 = Porm::from('users')->deleteAll(['name' => 'John']); // deletes all users with name John
+     *  $res2 = Porm::from('users')->deleteAll(['last_name' => 'Pionia', 'first_name'=>'Framework']); // deletes all users with last name Pionia and first_name as Framework
      * ```
      */
     public function deleteAll(array $where): ?PDOStatement
@@ -331,5 +346,17 @@ trait TableLevelQueryTrait
         if ($this->allowFilterOnly) {
             throw new Exception($msg);
         }
+    }
+
+    /**
+     * This is under the hood similar to deleteOne but it is more explicit
+     * @param string|int $id
+     * @param string|null $idField
+     * @return PDOStatement|null
+     * @throws Exception
+     */
+    public function deleteById(string|int $id, ?string $idField = 'id'): ?PDOStatement
+    {
+        return $this->delete($id, $idField);
     }
 }

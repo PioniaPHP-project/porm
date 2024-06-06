@@ -70,6 +70,8 @@ class PormObject
      */
     private bool $preventRaw = false;
 
+    private array $where = [];
+
     use TableLevelQueryTrait;
     use AggregateTrait;
 
@@ -81,8 +83,9 @@ class PormObject
         $this->table = $this->alias ? $table . ' (' . $this->alias . ')' : $table;
 
         if (!$this->connection) {
-            $this->database();
+            $this->boot();
         }
+
     }
 
     /**
@@ -143,7 +146,7 @@ class PormObject
      * Returns the details of the current db connection
      * @return array
      */
-    public function dbInfo(): array
+    public function info(): array
     {
         return $this->connection->info();
     }

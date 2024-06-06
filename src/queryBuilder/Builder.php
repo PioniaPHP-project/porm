@@ -33,6 +33,7 @@ class Builder
     private string|array $columns = "*";
 
     use AggregateTrait;
+    use ParseTrait;
 
     public function __construct($table, Core $database, ?array $join = null, $columns = "*", $where = [])
     {
@@ -61,7 +62,7 @@ class Builder
         } elseif (is_int($where)) {
             $this->where = array_merge($this->where, ['LIMIT' => [$where, 1]]);
         }
-        $result = $this->connection->get($this->table, $this->join, $this->columns, $this->where);
+        $result = $this->runGet();
         return (object)$result;
     }
 
@@ -71,33 +72,6 @@ class Builder
     public function first(): ?object
     {
         return $this->get(0);
-    }
-
-    /**
-     * Returns all items from the database. If a callback is passed, it will be called on each item in the resultset
-     *
-     * @example ```php
-     * // Assignment method
-     * $row = Table::from('user')
-     *     ->filter(['last_name' => 'Ezra'])
-     *    ->all();
-     *
-     * // Callback method- this is little bit faster than the assignment method
-     * Table::from('user')
-     *    ->filter(['last_name' => 'Ezra'])
-     *   ->all(function($row) {
-     *      echo $row->first_name;
-     *  });
-     * ```
-     * @param callable|null $callback This is the receiver for the current resultset
-     * @return array|null
-     */
-    public function all(?callable $callback = null): ?array
-    {
-        if ($callback) {
-            return $this->connection->select($this->table, $this->join, $this->columns, $this->where, $callback);
-        }
-        return $this->connection->select($this->table, $this->join, $this->columns, $this->where);
     }
 
     public function where(array $where): static
