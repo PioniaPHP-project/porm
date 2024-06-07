@@ -1,6 +1,6 @@
 {
   "name": "pionia/porm",
-  "description": "Query Language for Pionia Framework",
+  "description": "Database Querying tool for Pionia Framework",
   "keywords": [
     "pionia",
     "porm",
