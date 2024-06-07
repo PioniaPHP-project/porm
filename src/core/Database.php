@@ -18,6 +18,7 @@ namespace Porm\core;
 
 use Exception;
 use PDO;
+use PDOStatement;
 use Porm\exceptions\BaseDatabaseException;
 
 /**
@@ -34,13 +35,13 @@ class Database
      * This is the PDO object you can pass along
      * @var ?PDO
      */
-    public ?PDO $pdo = null;
+    private ?PDO $pdo = null;
 
     /**
      * This is the database connection to use, default is db
-     * @var string
+     * @var ?string
      */
-    public string $using = 'db';
+    public ?string $using = 'db';
 
     /**
      * This is the Core object to use
@@ -110,11 +111,81 @@ class Database
      * @return Core
      * @throws Exception
      */
-    public static function builder(?string $databaseConnection = null, ?array $options = null, ?PDO $pdo = null): Core
+    protected static function builder(?string $databaseConnection = null, ?array $options = null, ?PDO $pdo = null): Core
     {
         $current = new Database(null, $options, $pdo);
         $current->database = new Core($current->options);
         return $current->database;
+    }
+
+    /**
+     * @see https://medoo.in/api/create for more information on the creation of tables
+     * @param string $table_name
+     * @param array $columns
+     * @param array $options
+     * @return PDOStatement
+     */
+    public function createTable(string $table_name, array $columns, array $options): PDOStatement
+    {
+        return $this->database->create($table_name, $columns, $options);
+    }
+
+    /**
+     * @see https://medoo.in/api/drop for more information on the dropping of tables
+     * @param string $table_name
+     * @return PDOStatement|null
+     */
+    public function drop(string $table_name): ?PDOStatement
+    {
+        return $this->database->drop($table_name);
+    }
+
+    /**
+     * Gives you access to the underlying medoo object and pdo object
+     * @example ```php
+     * $data = $database->query("SELECT email FROM account")->fetchAll();
+     * var_dump($data);
+     * ```
+     * @param string $query
+     * @param array $map
+     * @return PDOStatement
+     */
+    public function query(string $query, array $map = []): PDOStatement
+    {
+        return $this->database->query($query, $map);
+    }
+
+    /**
+     * @see https://medoo.in/api/quote for more information on quoting values
+     * @param string $value
+     * @return string
+     */
+    public function clean(string $value): string
+    {
+        return $this->database->quote($value);
+    }
+
+    /**
+     * Returns the id of the last inserted row
+     * @return string|null
+     */
+    public function lastId(): ?string
+    {
+        return $this->database->id();
+    }
+
+    /**
+     * Returns the underlying pdo object
+     * From this, you can do anything you want with the pdo object
+     * @example ```php
+     * $start = $this->pdo()->beginTransaction();
+     * ```
+     * @see https://medoo.in/api/pdo for more information on the pdo object
+     * @return PDO
+     */
+    public function pdo(): PDO
+    {
+        return $this->database->pdo;
     }
 
     /**

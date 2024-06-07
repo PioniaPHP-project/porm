@@ -14,9 +14,8 @@
  *
  **/
 
-namespace Porm\queryBuilder;
+namespace Porm\database\aggregation;
 
-use Medoo\Raw;
 use Porm\core\Core;
 
 /**
@@ -28,14 +27,14 @@ use Porm\core\Core;
  * They can be used in the following way:
  * @example
  * ```php
- * $dt = Porm::from('qa_criteria')->get(Parg::gt('id', 1)); // get all records where id is greater than 1
+ * $dt = Porm::from('qa_criteria')->get(Agg::gt('id', 1)); // get all records where id is greater than 1
  * var_dump($dt);
  *
- * $dt = Porm::from('qa_criteria')->get(Parg::avg('id')); // get the average of the id column
+ * $dt = Porm::from('qa_criteria')->get(Agg::avg('id')); // get the average of the id column
  *  var_dump($dt);
  * ```
  */
-class Parg
+class Agg
 {
 
     /**
@@ -86,7 +85,7 @@ class Parg
      *
      * @param string $columName The column to assign the current timestamp to
      * @return array
-     * @example Parg::now('created_at') // create_at = NOW();
+     * @example Agg::now('created_at') // create_at = NOW();
      */
     public static function now(string $columName): array
     {
@@ -98,7 +97,7 @@ class Parg
      *
      * @param string $columnName The column to assign the UUID to
      * @return array
-     * @example Parg::uuid('id') // id = UUID();
+     * @example Agg::uuid('id') // id = UUID();
      */
     public static function uuid(string $columnName): array
     {

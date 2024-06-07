@@ -14,13 +14,16 @@
  *
  **/
 
-namespace Porm\queryBuilder;
+namespace Porm\database\utils;
 
 use Exception;
 use Medoo\Raw;
 use PDOStatement;
 use Porm\core\Core;
 use Porm\core\Database;
+use Porm\database\aggregation\AggregateTrait;
+use Porm\database\builders\Builder;
+use Porm\database\builders\PormObject;
 
 trait TableLevelQueryTrait
 {
@@ -49,7 +52,7 @@ trait TableLevelQueryTrait
         if (is_string($where)) {
             $where = ['id' => $where];
         }
-        return $this->connection->has($this->table, $where);
+        return $this->database->has($this->table, $where);
     }
 
     /**
@@ -78,7 +81,7 @@ trait TableLevelQueryTrait
             $where['LIMIT'] = $limit;
         }
 
-        $result = $this->connection->rand($this->table, $this->columns, $where);
+        $result = $this->database->rand($this->table, $this->columns, $where);
         $this->resultSet = $result;
         if ($limit === 1) {
             $this->resultSet = $this->resultSet[0];
@@ -105,8 +108,8 @@ trait TableLevelQueryTrait
         $this->checkFilterMode("You cannot save at this point in the query, check the usage of the `save()`
          method in the query builder for " . $this->table);
 
-        $this->boot()->insert($this->table, $data);
-        $id = $this->boot()->id();
+        $this->reboot()->insert($this->table, $data);
+        $id = $this->reboot()->id();
         return $this->get($id);
     }
 
@@ -118,38 +121,38 @@ trait TableLevelQueryTrait
             $where = [$idField => $where];
         }
         $this->where['AND'] = $where;
-        return $this->connection->update($this->table, $data, $this->where);
+        return $this->database->update($this->table, $data, $this->where);
     }
 
-    /**
-     * This helps to query any type of join.
-     * You can call it as many times as you want before calling filter.
-     * @throws Exception
-     */
-    public function join(string $joinType, string $joinPorm, string|array $joinColumns, ?string $alias = null): static
-    {
-        $this->allowFilterOnly = true;
-
-        if (in_array($joinType, [JoinTypes::INNER, JoinTypes::LEFT, JoinTypes::RIGHT, JoinTypes::FULL]) === false) {
-            throw new Exception('Invalid join type');
-        }
-
-        if ($joinPorm === $this->table && $alias === null) {
-            throw new Exception('Cannot join a table to itself without an alias, please provide an alias for ' . $joinPorm . ' table');
-        }
-
-        $result = match ($joinType) {
-            JoinTypes::INNER => ["[<>]$joinPorm"],
-            JoinTypes::LEFT => "[<]$joinPorm",
-            JoinTypes::RIGHT => "[>]$joinPorm",
-            JoinTypes::FULL => "[><]$joinPorm",
-        };
-        if ($alias) {
-            $result .= "( $alias )";
-        }
-        $this->join = [$this->join, $result => $joinColumns];
-        return $this;
-    }
+//    /**
+//     * This helps to query any type of join.
+//     * You can call it as many times as you want before calling filter.
+//     * @throws Exception
+//     */
+//    public function join(string $joinType, string $joinPorm, string|array $joinColumns, ?string $alias = null): static
+//    {
+//        $this->allowFilterOnly = true;
+//
+//        if (in_array($joinType, [JoinTypes::INNER, JoinTypes::LEFT, JoinTypes::RIGHT, JoinTypes::FULL]) === false) {
+//            throw new Exception('Invalid join type');
+//        }
+//
+//        if ($joinPorm === $this->table && $alias === null) {
+//            throw new Exception('Cannot join a table to itself without an alias, please provide an alias for ' . $joinPorm . ' table');
+//        }
+//
+//        $result = match ($joinType) {
+//            JoinTypes::INNER => ["[<>]$joinPorm"],
+//            JoinTypes::LEFT => "[<]$joinPorm",
+//            JoinTypes::RIGHT => "[>]$joinPorm",
+//            JoinTypes::FULL => "[><]$joinPorm",
+//        };
+//        if ($alias) {
+//            $result .= "( $alias )";
+//        }
+//        $this->join = array_merge($this->join, [$this->join, $result => $joinColumns]);
+//        return $this;
+//    }
 
     /**
      * @throws Exception
@@ -190,12 +193,12 @@ trait TableLevelQueryTrait
      *    $res3 = Porm::from('users')->get(['last_name' => 'Pionia', 'first_name'=>'Framework']); // fetches a user with last name Pionia and first_name as Framework
      * ```
      */
-    public function get(int|array|null $where = null, ?string $idField = 'id'): object|array|null
+    public function get(int|array|string $where = null, ?string $idField = 'id'): object|array|null
     {
         $this->checkFilterMode("You cannot call `get()` at this point in the query, check the usage of the `get()`
          method in the query builder for " . $this->table);
 
-        if (is_int($where)) {
+        if (is_int($where) || is_string($where)) {
             $where = [$idField => $where];
         }
         $this->where = array_merge($this->where, ['AND' => $where]);
@@ -216,7 +219,7 @@ trait TableLevelQueryTrait
     {
         $this->checkFilterMode("You cannot run raw queries at this point in the query, 
         check the usage of the `raw()` method in the query builder for " . $this->table);
-        return $this->connection::raw($query, $params);
+        return $this->database::raw($query, $params);
     }
 
     /**
@@ -233,7 +236,7 @@ trait TableLevelQueryTrait
     public function filter(?array $where = []): Builder
     {
         $this->allowFilterOnly = true;
-        return new Builder($this->table, $this->connection, $this->join, $this->columns, $where);
+        return new Builder($this->table, $this->database, $this->columns, $where);
     }
 
     /**
@@ -278,28 +281,28 @@ trait TableLevelQueryTrait
      * This sets up the database connection to use internally. It is called when the Porm class is being set up.
      * @throws Exception
      */
-    private function boot(): Core
+    private function reboot(): Core
     {
+        if ($this->database) {
+            return $this->database;
+        }
         if ($this->using) {
-            $this->connection = Database::builder($this->using);
+            $this->database = Database::builder($this->using);
         }
-        if ($this->connection) {
-            return $this->connection;
-        }
-        $this->connection = Database::builder();
-        return $this->connection;
+        $this->database = Database::builder();
+        return $this->database;
     }
 
     /**
      * This deletes a single item from the database
-     * @param int|array $where
+     * @param int|array|string $where
+     * @param string|null $idField
      * @return PDOStatement|null
      * @throws Exception
      * @example ```php
      *   $res1 = Porm::from('users')->delete(1); // deletes a user with id 1
      *   $res2 = Porm::from('users')->delete(['name' => 'John']); // deletes a user with name John
      * ```
-     *
      */
     public function delete(int|array|string $where, ?string $idField = 'id'): ?PDOStatement
     {
@@ -309,7 +312,7 @@ trait TableLevelQueryTrait
         if (is_int($where)) {
             $where = [$idField => $where];
         }
-        return $this->connection->delete($this->table, $where);
+        return $this->database->delete($this->table, $where);
     }
 
     /**
@@ -326,7 +329,7 @@ trait TableLevelQueryTrait
     {
         $this->checkFilterMode("You cannot delete at this point in the query, check the usage of the `delete()`
          method in the query builder for " . $this->table);
-        return $this->connection->delete($this->table, $where);
+        return $this->database->delete($this->table, $where);
     }
 
     /**

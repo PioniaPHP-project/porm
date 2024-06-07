@@ -14,16 +14,20 @@
  *
  **/
 
-namespace Porm\queryBuilder;
+namespace Porm\database\builders;
 
 use Exception;
 use Porm\core\Core;
+use Porm\core\Database;
+use Porm\database\aggregation\AggregateTrait;
+use Porm\database\utils\TableLevelQueryTrait;
+use Porm\exceptions\BaseDatabaseException;
 use Porm\Porm;
 
 /**
  * This should not be worked with directly, use the Porm class instead.
  */
-class PormObject
+class PormObject extends Database
 {
     /**
      * The database table to use
@@ -34,20 +38,6 @@ class PormObject
      * @var string|null The alias to use, will defualt to the table name provided.
      */
     private ?string $alias;
-    /**
-     * @var Core|null The database connection to use
-     */
-    private ?Core $connection = null;
-
-    /**
-     * @var array|null The join clause Builder
-     */
-    private ?array $join = null;
-    /**
-     * @var mixed The where clause Builder
-     */
-    private ?string $using;
-
     /**
      * @var bool Lock out the use of filter
      */
@@ -78,12 +68,16 @@ class PormObject
     public function __construct($table, ?string $alias = null, ?string $using = null)
     {
         $this->using = $using;
-        $this->alias = $alias ?? null;
+
+        parent::__construct($this->using);
+
+        $this->alias = $alias;
 
         $this->table = $this->alias ? $table . ' (' . $this->alias . ')' : $table;
 
-        if (!$this->connection) {
-            $this->boot();
+        // attempt to reconnect if the connection is lost
+        if (!$this->database) {
+            $this->reboot();
         }
 
     }
@@ -95,22 +89,26 @@ class PormObject
      * @param string|null $alias The alias to use
      * @param string|null $using The connection to use
      *
-     * @throws Exception
+     * @throws BaseDatabaseException
      * @example ```php
      *     Table::from('user') // notice this here
      *       ->get(['last_name' => 'Pionia']);
      * ```
      *
      */
-    public static function from($table, ?string $alias = null, ?string $using = null): Porm
+    public static function from(string $table, ?string $alias = null, ?string $using = null): Porm
     {
-        return new Porm($table, $alias, $using);
+        try {
+            return new Porm($table, $alias, $using);
+        } catch (Exception $e) {
+            throw new BaseDatabaseException($e->getMessage());
+        }
     }
 
 
-    public function getConnection(): ?Core
+    public function getDatabase(): ?Core
     {
-        return $this->connection;
+        return $this->database;
     }
 
 
@@ -136,8 +134,8 @@ class PormObject
      */
     public function inTransaction(callable $callback): void
     {
-        $this->connection->action(function ($database) use ($callback) {
-            $this->connection = $database;
+        $this->database->action(function ($database) use ($callback) {
+            $this->database = $database;
             return $callback($this);
         });
     }
@@ -148,6 +146,6 @@ class PormObject
      */
     public function info(): array
     {
-        return $this->connection->info();
+        return $this->database->info();
     }
 }

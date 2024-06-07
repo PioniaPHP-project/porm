@@ -14,15 +14,16 @@
  *
  **/
 
-namespace Porm\queryBuilder;
+namespace Porm\database\builders;
 
 use Porm\core\Core;
+use Porm\database\aggregation\AggregateTrait;
+use Porm\database\utils\ParseTrait;
 
 class Builder
 {
     private string $table;
-    private Core $connection;
-    private ?array $join;
+    private Core $database;
 
     private bool $preventLimit = false;
 
@@ -35,11 +36,10 @@ class Builder
     use AggregateTrait;
     use ParseTrait;
 
-    public function __construct($table, Core $database, ?array $join = null, $columns = "*", $where = [])
+    public function __construct($table, Core $database, $columns = "*", $where = [])
     {
         $this->table = $table;
-        $this->connection = $database;
-        $this->join = $join;
+        $this->database = $database;
         $this->columns = $columns;
         $this->where = $where;
     }
@@ -72,12 +72,6 @@ class Builder
     public function first(): ?object
     {
         return $this->get(0);
-    }
-
-    public function where(array $where): static
-    {
-        $this->where = array_merge($this->where, $where);
-        return $this;
     }
 
     public function match($columns, $keyword, $mode = 'natural'): static

@@ -17,7 +17,7 @@
 namespace Porm;
 
 use Medoo\Medoo;
-use Porm\queryBuilder\PormObject;
+use Porm\database\builders\PormObject;
 
 /**
  * This should the preferred way to interact with the database in the Pionia Framework. It is a wrapper around the Medoo library.

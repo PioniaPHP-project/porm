@@ -14,30 +14,23 @@
  *
  **/
 
-namespace Porm\queryBuilder;
+namespace Porm\database\utils;
 
 trait ParseTrait
 {
 
     private function runSelect(?callable $callback): ?array
     {
-        if (!$this->join) {
-            $queryset = $this->connection->select($this->table, $this->columns, $this->where, $callback);
-        } elseif (empty($this->where) && !$this->join) {
-            $queryset = $this->connection->select($this->table, $this->columns, $callback);
-        } else {
-            $queryset = $this->connection->select($this->table, $this->join, $this->columns, $this->where, $callback);
+        
+        if ($callback) {
+            return $this->database->select($this->table, $this->columns, $this->where, $callback);
         }
-        return $queryset;
+        return $this->database->select($this->table, $this->columns, $this->where);
     }
 
     private function runGet(): ?array
     {
-        if ($this->join) {
-            return $this->connection->get($this->table, $this->join, $this->columns, $this->where);
-        }
-
-        return $this->connection->get($this->table, $this->columns, $this->where);
+        return $this->database->get($this->table, $this->columns, $this->where);
     }
 
     /**
@@ -62,5 +55,11 @@ trait ParseTrait
     public function all(?callable $callback = null): ?array
     {
         return $this->runSelect($callback);
+    }
+
+    public function where(array $where): static
+    {
+        $this->where[] = $where;
+        return $this;
     }
 }

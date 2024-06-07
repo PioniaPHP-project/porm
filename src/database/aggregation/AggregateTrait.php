@@ -14,7 +14,7 @@
  *
  **/
 
-namespace Porm\queryBuilder;
+namespace Porm\database\aggregation;
 
 trait AggregateTrait
 {
@@ -27,7 +27,7 @@ trait AggregateTrait
     public function count(?string $column = null, ?array $where = null): ?int
     {
         $this->where[] = $where;
-        return $this->connection->count($this->table, $this->join, $column, $this->where);
+        return $this->database->count($this->table, $this->join, $column, $this->where);
     }
 
     /**
@@ -39,7 +39,7 @@ trait AggregateTrait
     public function sum(string $column, ?array $where): ?string
     {
         $this->where[] = $where;
-        return $this->connection->sum($this->table, $column, $this->where);
+        return $this->database->sum($this->table, $column, $this->where);
     }
 
     /**
@@ -51,7 +51,7 @@ trait AggregateTrait
     public function avg(string $column, ?array $where): ?string
     {
         $this->where[] = $where;
-        return $this->connection->avg($this->table, $this->join, $column, $this->where);
+        return $this->database->avg($this->table, $this->join, $column, $this->where);
     }
 
     /**
@@ -63,7 +63,7 @@ trait AggregateTrait
     public function max(string $column, ?array $where): ?string
     {
         $this->where[] = $where;
-        return $this->connection->max($this->table, $this->join, $column, $this->where);
+        return $this->database->max($this->table, $this->join, $column, $this->where);
     }
 
     /**
@@ -75,6 +75,6 @@ trait AggregateTrait
     public function min(string $column, ?array $where): ?string
     {
         $this->where[] = $where;
-        return $this->connection->min($this->table, $this->join, $column, $this->where);
+        return $this->database->min($this->table, $this->join, $column, $this->where);
     }
 }
