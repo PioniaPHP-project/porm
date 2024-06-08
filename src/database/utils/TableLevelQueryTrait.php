@@ -81,14 +81,19 @@ trait TableLevelQueryTrait
             $where['LIMIT'] = $limit;
         }
 
-        $result = $this->database->rand($this->table, $this->columns, $where);
-        $this->resultSet = $result;
-        if ($limit === 1) {
-            $this->resultSet = $this->resultSet[0];
-            return $this->asObject();
+        $this->where = array_merge($this->where, $where);
+        var_dump($this->where);
+        $result = $this->database->rand($this->table, $this->columns, $this->where);
+        if ($result) {
+            $this->resultSet = $result;
+            if ($limit === 1 || !$limit) {
+                $this->resultSet = $this->resultSet[0];
+                return $this->asObject();
+            }
+            $this->resultSet = $result;
         }
-        $this->resultSet = $result;
-        return $this->resultSet;
+
+        return $result;
     }
 
     /**
@@ -123,36 +128,6 @@ trait TableLevelQueryTrait
         $this->where['AND'] = $where;
         return $this->database->update($this->table, $data, $this->where);
     }
-
-//    /**
-//     * This helps to query any type of join.
-//     * You can call it as many times as you want before calling filter.
-//     * @throws Exception
-//     */
-//    public function join(string $joinType, string $joinPorm, string|array $joinColumns, ?string $alias = null): static
-//    {
-//        $this->allowFilterOnly = true;
-//
-//        if (in_array($joinType, [JoinTypes::INNER, JoinTypes::LEFT, JoinTypes::RIGHT, JoinTypes::FULL]) === false) {
-//            throw new Exception('Invalid join type');
-//        }
-//
-//        if ($joinPorm === $this->table && $alias === null) {
-//            throw new Exception('Cannot join a table to itself without an alias, please provide an alias for ' . $joinPorm . ' table');
-//        }
-//
-//        $result = match ($joinType) {
-//            JoinTypes::INNER => ["[<>]$joinPorm"],
-//            JoinTypes::LEFT => "[<]$joinPorm",
-//            JoinTypes::RIGHT => "[>]$joinPorm",
-//            JoinTypes::FULL => "[><]$joinPorm",
-//        };
-//        if ($alias) {
-//            $result .= "( $alias )";
-//        }
-//        $this->join = array_merge($this->join, [$this->join, $result => $joinColumns]);
-//        return $this;
-//    }
 
     /**
      * @throws Exception
@@ -236,7 +211,11 @@ trait TableLevelQueryTrait
     public function filter(?array $where = []): Builder
     {
         $this->allowFilterOnly = true;
-        return new Builder($this->table, $this->database, $this->columns, $where);
+        if ($where) {
+            $this->where = array_merge($this->where, $where);
+        }
+        return Builder::builder($this->table, $this->database, $this->columns, $this->where)
+            ->build();
     }
 
     /**
@@ -294,28 +273,6 @@ trait TableLevelQueryTrait
     }
 
     /**
-     * This deletes a single item from the database
-     * @param int|array|string $where
-     * @param string|null $idField
-     * @return PDOStatement|null
-     * @throws Exception
-     * @example ```php
-     *   $res1 = Porm::from('users')->delete(1); // deletes a user with id 1
-     *   $res2 = Porm::from('users')->delete(['name' => 'John']); // deletes a user with name John
-     * ```
-     */
-    public function delete(int|array|string $where, ?string $idField = 'id'): ?PDOStatement
-    {
-        $this->checkFilterMode("You cannot delete at this point in the query, check the usage of the `delete()`
-         method in the query builder for " . $this->table);
-
-        if (is_int($where)) {
-            $where = [$idField => $where];
-        }
-        return $this->database->delete($this->table, $where);
-    }
-
-    /**
      * This deletes all items that match the where clause
      * @param array $where
      * @return PDOStatement|null
@@ -329,7 +286,7 @@ trait TableLevelQueryTrait
     {
         $this->checkFilterMode("You cannot delete at this point in the query, check the usage of the `delete()`
          method in the query builder for " . $this->table);
-        return $this->database->delete($this->table, $where);
+        return $this->delete($where);
     }
 
     /**

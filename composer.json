@@ -15,7 +15,8 @@
   "type": "library",
   "require": {
     "ext-pdo": "*",
-    "catfan/medoo": "v2.1.12"
+    "catfan/medoo": "v2.1.12",
+    "ramsey/uuid": "^4.7"
   },
   "license": "MIT",
   "autoload": {

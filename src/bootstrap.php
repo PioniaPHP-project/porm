@@ -14,13 +14,19 @@
  *
  **/
 
+
+//use Porm\database\aggregation\Agg;
+//use Porm\database\builders\Where;
+//use Porm\Porm;
+
 require __DIR__ . '/../vendor/autoload.php';
 
 
 //$var = Porm::from('user')
-//    ->join(JoinTypes::LEFT, 'profile', 'role_id')
 //    ->filter(['role_id' => 1])
 //    ->first();
+//
+//var_dump($var);
 
 //$inserted = $database::from("qa_criteria")->save([
 //    'name' => 'Test 22',
@@ -36,14 +42,17 @@ require __DIR__ . '/../vendor/autoload.php';
 //var_dump($uodate->rowCount());
 
 
-//$var = $database::from("qa_criteria")
-//    ->delete(24);
+//$var = Porm::from("qa_criteria")
+//    ->delete(Where::builder()->or(Agg::builder()
+//        ->like("name", '28')
+//        ->like("description", '28')
+//        ->build())->build());
 //
 //var_dump($var->rowCount());
 
 
-// select * from user
-//$select = Porm::from('user')
+// select * from qa_criteria
+//$select = Porm::from('qa_criteria')
 //    ->all();
 //
 //var_dump($select);
@@ -66,7 +75,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 // update qa_criteria set best_of_total = best_of_total + 3 where id = 25
 //$updated = Porm::from("qa_criteria")
-//    ->update(Agg::plus("best_of_total", 3), 25);
+//    ->update(Agg::builder()->plus('best_of_total', 3)->build(), Where::builder()->where(['id' => 30])->build());
 //
 //// updated will consist of the number of rows updated
 //var_dump($updated->rowCount());
@@ -90,6 +99,32 @@ require __DIR__ . '/../vendor/autoload.php';
 
 // with joins in mind
 //$select = Porm::from('user')
+//    ->addAggregateWhere(\Porm\database\aggregation\Agg::like('first_name', 'ezra'))
 //    ->random();
 //
 //var_dump($select);
+
+//$var = Porm::from("user")->filter(Where::builder()
+//    ->and(Where::builder()
+//        ->or(
+//            Agg::builder()
+//                ->like("first_name", "jet")
+//                ->lt("password", 10)
+//                ->build()
+//        )
+//        ->or(
+//            ["last_name" => 10, 'first_name' => 'nothing']
+//        )->build())
+//    ->build()
+//)->all();
+
+//var_dump($var);
+
+// order by
+//$var = Porm::from("qa_criteria")
+//    ->filter()
+//    ->orderBy(["best_of_total" => 'DESC'])
+//    ->all();
+//
+//var_dump($var);
+

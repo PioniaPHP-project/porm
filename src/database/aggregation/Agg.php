@@ -16,6 +16,8 @@
 
 namespace Porm\database\aggregation;
 
+use Exception;
+use Porm\core\ContractBuilder;
 use Porm\core\Core;
 
 /**
@@ -34,74 +36,94 @@ use Porm\core\Core;
  *  var_dump($dt);
  * ```
  */
-class Agg
+class Agg extends ContractBuilder
 {
+    private array $aggregated = [];
+
+    public function build(): array
+    {
+        return $this->aggregated;
+    }
 
     /**
      * Assign a random value to a column
      * @param string $columnName will be the alias of the result
-     * @return array
+     * @return Agg
      */
-    public static function random(string $columnName): array
+    public function random(string $columnName): Agg
     {
-        return [$columnName => Core::raw("RAND()")];
+        $arg = [$columnName => Core::raw("RAND()")];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * Get the sum of a column and assign it to columnName
      * @param string $columName will be the alias of the result
      * @param string $column will be the column to get the minimum value from
-     * @return array
+     * @return Agg
      */
-    public static function sum(string $columName, string $column): array
+    public function sum(string $columName, string $column): Agg
     {
-        return [$columName => Core::raw("SUM(<$column>)")];
+        $arg = [$columName => Core::raw("SUM(<$column>)")];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * Get the average value of a column and assing it to columnName
-     * @param string $columnName will be the alias of the result
+     * @param string $columName
      * @param string $column will be the column to get the minimum value from
-     * @return array
+     * @return Agg
      */
-    public static function avg(string $columName, $column): array
+    public function avg(string $columName, string $column): Agg
     {
-        return [$columName => Core::raw("AVG(<$column>)")];
+        $arg = [$columName => Core::raw("AVG(<$column>)")];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * Get the maximum value of a column
      * @param string $columnName will be the alias of the result
      * @param string $column will be the column to get the maximum value from
-     * @return array
+     * @return Agg
      */
-    public static function max(string $columnName, string $column): array
+    public function max(string $columnName, string $column): Agg
     {
-        return [$columnName => Core::raw("MAX(<$column>)")];
+        $arg = [$columnName => Core::raw("MAX(<$column>)")];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * Assign current timestamp to a column
      *
      * @param string $columName The column to assign the current timestamp to
-     * @return array
-     * @example Agg::now('created_at') // create_at = NOW();
+     * @return Agg
      */
-    public static function now(string $columName): array
+    public function now(string $columName): Agg
     {
-        return [$columName => Core::raw("NOW()")];
+        $arg = [$columName => Core::raw("NOW()")];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
-     * Assign a UUID to a column
+     * If uuid string is passed, checks if a column is matching the given uuid otherwise generates new one and assigns it to the column given
      *
-     * @param string $columnName The column to assign the UUID to
-     * @return array
-     * @example Agg::uuid('id') // id = UUID();
+     * @param string $columnName
+     * @param ?string $uuidString optional
+     * @return Agg
      */
-    public static function uuid(string $columnName): array
+    public function uuid(string $columnName, ?string $uuidString): Agg
     {
-        return [$columnName => Core::raw("UUID()")];
+        if (!$uuidString) {
+            $uuidString = Core::raw("UUID()");
+        }
+        $arg = [$columnName => $uuidString];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
 
@@ -109,120 +131,226 @@ class Agg
      * Less than.
      * @param string $columnName
      * @param int $value
-     * @return array
+     * @return Agg
      */
-    public static function lt(string $columnName, int $value): array
+    public function lt(string $columnName, int $value): Agg
     {
-        return [$columnName . "[<]" => $value];
+        $arg = [$columnName . "[<]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * Less than or equal to.
      * @param string $columnName
      * @param int $value
-     * @return array
+     * @return Agg
      */
-    public static function lte(string $columnName, int $value): array
+    public function lte(string $columnName, int $value): Agg
     {
-        return [$columnName . "[<=]" => $value];
+        $arg = [$columnName . "[<=]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * Greater than.
      * @param string $columnName
      * @param int $value
-     * @return array
+     * @return Agg
      */
-    public static function gt(string $columnName, int $value): array
+    public function gt(string $columnName, int $value): Agg
     {
-        return [$columnName . "[>]" => $value];
+        $arg = [$columnName . "[>]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * Greater than or equal to.
      * @param string $columnName
      * @param int $value
-     * @return array
+     * @return Agg
      */
-    public static function gte(string $columnName, mixed $value): array
+    public function gte(string $columnName, mixed $value): Agg
     {
-        return [$columnName . "[>=]" => $value];
+        $arg = [$columnName . "[>=]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * Equal to.
      * @param string $columnName
      * @param mixed $value
-     * @return array
+     * @return Agg
      */
-    public static function eq(string $columnName, mixed $value): array
+    public function eq(string $columnName, mixed $value): Agg
     {
-        return [$columnName => $value];
+        $arg = [$columnName => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * Not equal to.
      * @param string $columnName
      * @param mixed $value
-     * @return array
+     * @return Agg
      */
-    public static function neq(string $columnName, mixed $value): array
+    public function neq(string $columnName, mixed $value): Agg
     {
-        return [$columnName . "[!]" => $value];
+        $arg = [$columnName . "[!]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * add to the column value
      * @param string $columnName
      * @param mixed $value
-     * @return array
+     * @return Agg
      */
-    public static function plus(string $columnName, int $value): array
+    public function plus(string $columnName, int $value): Agg
     {
-        return [$columnName . "[+]" => $value];
+        $arg = [$columnName . "[+]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * subtract from the column value
      * @param string $columnName
      * @param mixed $value
-     * @return array
+     * @return Agg
      */
-    public static function minus(string $columnName, int $value): array
+    public function minus(string $columnName, int $value): Agg
     {
-        return [$columnName . "[-]" => $value];
+        $arg = [$columnName . "[-]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * multiply the column value
      * @param string $columnName
      * @param mixed $value
-     * @return array
+     * @return Agg
      */
-    public static function of(string $columnName, int $value): array
+    public function of(string $columnName, int $value): Agg
     {
-        return [$columnName . "[*]" => $value];
+        $arg = [$columnName . "[*]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * json encode the column value and assign it to the column
      * @param string $columnName
      * @param mixed $value
-     * @return array
+     * @return Agg
      */
-    public static function jsonified(string $columnName, array $value): array
+    public function jsonified(string $columnName, array $value): Agg
     {
-        return [$columnName . "[JSON]" => $value];
+        $arg = [$columnName . "[JSON]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
     }
 
     /**
      * divide the column value
      * @param string $columnName
      * @param mixed $value
-     * @return array
+     * @return Agg
      */
-    public static function div(string $columnName, int $value): array
+    public function div(string $columnName, int $value): Agg
     {
-        return [$columnName . "[/]" => $value];
+        $arg = [$columnName . "[/]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
+    }
+
+    /**
+     * Used to add a like condition to a query
+     *
+     * @param string $columnName
+     * @param mixed $value
+     * @return Agg
+     */
+    public function like(string $columnName, string|array $value): Agg
+    {
+        $arg = [$columnName . "[~]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
+    }
+
+    /**
+     * Used to add a like condition to a query
+     *
+     * @param string $columnName
+     * @param string|array $value
+     * @return Agg
+     */
+    public function notLike(string $columnName, string|array $value): Agg
+    {
+        $arg = [$columnName . "[!~]" => $value];
+        $this->aggregated = array_merge($this->aggregated, $arg);
+        return $this;
+    }
+
+    /**
+     * This compares two tables in the db
+     * @example ```php
+     *  Agg::builder()->columnsCompare('age_restriction', '=', 'age')
+     * ```
+     * @throws Exception
+     */
+    public function columnsCompare(string $column, string $comparison, string $otherColumn): static
+    {
+        if (in_array($comparison, ['=', '>', '<', '!='])) {
+            throw new Exception("While comparing two columns, comparison must be one of '=', '>', '<', '!=, check the comparison between $column and $otherColumn");
+        }
+        $this->aggregated[] = $column . ' ' . $comparison . ' ' . $otherColumn;
+        return $this;
+    }
+
+    /**
+     * Checks if the value of the $columnName is between the given values.
+     * Cool for all number formats and dates
+     * @param $columnName
+     * @param array $values
+     * @return $this
+     * @example
+     */
+    public function between($columnName, array $values): static
+    {
+        $this->aggregated = array_merge($this->aggregated, [$columnName . "[<>]" => $values]);
+        return $this;
+    }
+
+    /**
+     * Checks if the value of the $columnName is not between the given values.
+     * Cool for all number formats and dates too
+     * @param $columnName
+     * @param array $values
+     * @return $this
+     * @example
+     */
+    public function notBetween($columnName, array $values): static
+    {
+        $this->aggregated = array_merge($this->aggregated, [$columnName . "[><]" => $values]);
+        return $this;
+    }
+
+    /**
+     * Check if the value of the given column matches the given regular expression
+     * @param $columnName
+     * @param string $regex
+     * @return $this
+     */
+    public function regex($columnName, string $regex): static
+    {
+        $this->aggregated = array_merge($this->aggregated, [$columnName . '[REGEXP]' => $regex]);
+        return $this;
     }
 }

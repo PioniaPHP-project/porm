@@ -16,13 +16,15 @@
 
 namespace Porm\database\builders;
 
+use Porm\core\ContractBuilder;
 use Porm\core\Core;
 use Porm\database\aggregation\AggregateTrait;
 use Porm\database\utils\ParseTrait;
 
-class Builder
+class Builder extends ContractBuilder
 {
     private string $table;
+
     private Core $database;
 
     private bool $preventLimit = false;
@@ -128,9 +130,62 @@ class Builder
         return $this;
     }
 
-    public function having(array $having)
+    /**
+     * Adds a 'having' clause to the query
+     * @param string $column
+     * @param mixed $value
+     * @param ?string $needle can be >, <, !,>=, <=.  >< and <> are available for datetime
+     * @return $this
+     */
+    public function having(string $column, mixed $value, ?string $needle = null): static
     {
-        $this->where['HAVING'] = $having;
+        if ($needle) {
+            $column .= "[$needle]";
+        }
+        if (isset($this->where['HAVING'])) {
+            $havingArray = $this->where['HAVING'];
+            $havingArray = array_merge($havingArray, [$column => $value]);
+            $this->where = array_merge($this->where, $havingArray);
+        } else {
+            $this->where = array_merge($this->where, ['HAVING' => [$column . "[>]" => $value]]);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Orders the query by certain value.
+     *
+     * @example ```php
+     * // single column
+     * ->filter()
+     * ->orderBy("name")
+     *
+     * // multiple Order items
+     * ->filter()
+     * ->orderBy(['name' => 'DESC', 'age' => 'ASC'])
+     * @param string|array $value
+     * @return $this
+     */
+    public function orderBy(string|array $value): static
+    {
+        if (isset($this->where['ORDER'])) {
+            $orderArray = $this->where['ORDER'];
+            if (is_array($orderArray)) {
+                $orderArray[] = $value;
+                $this->where = array_merge($this->where, $orderArray);
+            } else {
+                $this->where["ORDER"] = $value;
+            }
+        } else {
+            $this->where['ORDER'] = $value;
+        }
+
+        return $this;
+    }
+
+    public function build(): mixed
+    {
         return $this;
     }
 }

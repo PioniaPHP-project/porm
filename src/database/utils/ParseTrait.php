@@ -16,12 +16,14 @@
 
 namespace Porm\database\utils;
 
+use PDOStatement;
+
 trait ParseTrait
 {
 
     private function runSelect(?callable $callback): ?array
     {
-        
+
         if ($callback) {
             return $this->database->select($this->table, $this->columns, $this->where, $callback);
         }
@@ -59,7 +61,25 @@ trait ParseTrait
 
     public function where(array $where): static
     {
-        $this->where[] = $where;
+        $this->where = array_merge($this->where, $where);
         return $this;
+    }
+
+    /**
+     * @param int|array|string $where
+     * @param string|null $idField
+     * @return PDOStatement|null
+     * @example ```php
+     *   $res1 = Porm::from('users')->delete(1); // deletes a user with id 1
+     *   $res2 = Porm::from('users')->delete(['name' => 'John']); // deletes a user with name John
+     * ```
+     */
+    public function delete(int|array|string $where, ?string $idField = 'id'): ?PDOStatement
+    {
+        if (!is_array($where)) {
+            $where = [$idField => $where];
+        }
+        $this->where = array_merge($this->where, $where);
+        return $this->database->delete($this->table, $this->where);
     }
 }
