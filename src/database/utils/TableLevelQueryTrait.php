@@ -82,7 +82,6 @@ trait TableLevelQueryTrait
         }
 
         $this->where = array_merge($this->where, $where);
-        var_dump($this->where);
         $result = $this->database->rand($this->table, $this->columns, $this->where);
         if ($result) {
             $this->resultSet = $result;
