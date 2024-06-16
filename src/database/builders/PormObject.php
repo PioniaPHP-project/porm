@@ -113,7 +113,7 @@ class PormObject extends Database
      * @param string|null $using
      * @return Porm
      * @throws BaseDatabaseException
-     * @since v1.0.3 You can this method instead of from(), but this is more readable
+     * @since v1.0.2 You can this method instead of from(), but this is more readable
      * @see from()
      */
     public static function table(string $table, ?string $alias = null, ?string $using = null): Porm
