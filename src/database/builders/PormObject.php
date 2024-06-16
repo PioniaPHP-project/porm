@@ -105,6 +105,22 @@ class PormObject extends Database
         }
     }
 
+    /**
+     * This is for running queries. Should be called first
+     *
+     * @param string $table
+     * @param string|null $alias
+     * @param string|null $using
+     * @return Porm
+     * @throws BaseDatabaseException
+     * @since v1.0.3 You can this method instead of from(), but this is more readable
+     * @see from()
+     */
+    public static function table(string $table, ?string $alias = null, ?string $using = null): Porm
+    {
+        return self::from($table, $alias, $using);
+    }
+
 
     public function getDatabase(): ?Core
     {

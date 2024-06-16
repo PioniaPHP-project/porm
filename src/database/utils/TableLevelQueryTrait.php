@@ -32,7 +32,8 @@ trait TableLevelQueryTrait
 
     /**
      * This checks if the table has a record that matches the where clause
-     * @param string|array $where
+     * @param string|array|int|null $where
+     * @param string|null $pkField
      * @return bool
      *
      * @throws Exception
@@ -40,19 +41,22 @@ trait TableLevelQueryTrait
      *      $res1 = Porm::from('users')->has(1); // with integer where clause that defaults to id = 1
      *      $res2 = Porm::from('users')->has(['id' => 1]); // with array where clause
      * ```
-     *
      */
-    public function has(string|array $where): bool
+    public function has(string|array|int|null $where, ?string $pkField = 'id'): bool
     {
         $this->checkFilterMode("You cannot check if an item exists at this point in the query, check the usage of the `has()`
          method in the query builder for " . $this->table);
         if ($this->preventHas) {
             throw new Exception('You cannot call `has()` at this point in the query, check the usage of the `has()` method in the query builder for ' . $this->table);
         }
-        if (is_string($where)) {
-            $where = ['id' => $where];
+        if (is_string($where) || is_int($where)) {
+            $where = [$pkField => $where];
         }
-        return $this->database->has($this->table, $where);
+        $this->where = array_merge($this->where, $where);
+        if (count($this->where) < 1) {
+            throw new Exception("You did not define any conditions for `has` method.");
+        }
+        return $this->database->has($this->table, $this->where);
     }
 
     /**
@@ -117,14 +121,21 @@ trait TableLevelQueryTrait
         return $this->get($id);
     }
 
-    public function update(array $data, array|int|string $where, ?string $idField = 'id')
+    /**
+     * @param array $data
+     * @param array|int|string $where
+     * @param string|null $idField
+     * @return PDOStatement|null
+     * @throws Exception
+     */
+    public function update(array $data, array|int|string $where, ?string $idField = 'id'): ?PDOStatement
     {
         $this->checkFilterMode("You cannot update at this point in the query, check the usage of the `update()`
          method in the query builder for " . $this->table);
         if (is_int($where) || is_string($where)) {
             $where = [$idField => $where];
         }
-        $this->where['AND'] = $where;
+        $this->where = array_merge($this->where, $where);
         return $this->database->update($this->table, $data, $this->where);
     }
 
@@ -157,7 +168,7 @@ trait TableLevelQueryTrait
      *
      *
      *
-     * @param int|array $where
+     * @param int|array|string|null $where
      * @param string|null $idField defaults to id, pass this if you want to use a different field as the id other than id
      * @return object|array|null
      * @throws Exception
@@ -175,7 +186,7 @@ trait TableLevelQueryTrait
         if (is_int($where) || is_string($where)) {
             $where = [$idField => $where];
         }
-        $this->where = array_merge($this->where, ['AND' => $where]);
+        $this->where = array_merge($this->where, $where);
         $result = $this->runGet();
         $this->resultSet = $result;
         if ($this->resultSet) {
