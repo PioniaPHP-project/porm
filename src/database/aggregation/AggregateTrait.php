@@ -26,7 +26,9 @@ trait AggregateTrait
      */
     public function count(?string $column = null, ?array $where = null): ?int
     {
-        $this->where = array_merge($this->where, $where);
+        if (is_array($where)) {
+            $this->where = array_merge($this->where, $where);
+        }
         return $this->database->count($this->table, $column, $this->where);
     }
 
