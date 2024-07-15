@@ -14,8 +14,19 @@
  *
  **/
 
-namespace Porm\exceptions;
+namespace Porm\Core;
 
-class InvalidWhereClause extends BaseDatabaseException
+use Medoo\Medoo;
+
+class Core extends Medoo
 {
+    public function __construct($options = null)
+    {
+        parent::__construct($options);
+    }
+
+    public static function canLog(): bool
+    {
+        return Utilities::canLog();
+    }
 }

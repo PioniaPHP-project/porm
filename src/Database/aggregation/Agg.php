@@ -14,16 +14,16 @@
  *
  **/
 
-namespace Porm\database\aggregation;
+namespace Porm\Database\aggregation;
 
 use Exception;
-use Porm\core\ContractBuilder;
-use Porm\core\Core;
+use Porm\Core\ContractBuilder;
+use Porm\Core\Core;
 
 /**
  * Aggregate functions for the PORM library.
  *
- * These methods are used to perform aggregate functions on the database.
+ * These methods are used to perform aggregate functions on the Database.
  * @link https://medoo.in/api/aggregate
  *
  * They can be used in the following way:

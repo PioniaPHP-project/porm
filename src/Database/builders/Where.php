@@ -14,9 +14,9 @@
  *
  **/
 
-namespace Porm\database\builders;
+namespace Porm\Database\builders;
 
-use Porm\core\ContractBuilder;
+use Porm\Core\ContractBuilder;
 use Ramsey\Uuid\Nonstandard\Uuid;
 
 class Where extends ContractBuilder

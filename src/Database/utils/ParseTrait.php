@@ -36,7 +36,7 @@ trait ParseTrait
     }
 
     /**
-     * Returns all items from the database. If a callback is passed, it will be called on each item in the resultset
+     * Returns all items from the Database. If a callback is passed, it will be called on each item in the resultset
      *
      * @example ```php
      * // Assignment method

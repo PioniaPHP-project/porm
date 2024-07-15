@@ -14,7 +14,7 @@
  *
  **/
 
-namespace Porm\core;
+namespace Porm\Core;
 
 class Utilities
 {
@@ -56,7 +56,8 @@ class Utilities
             } elseif (isset($sector['LOG_REQUESTS']) && $sector['LOG_REQUESTS']) {
                 return true;
             } else {
-                return false;
+                $new_sector = self::getAllSettingsUnderSection('DB') ?? self::getAllSettingsUnderSection('db');
+                return $new_sector['LOGGING'] ?? $new_sector['logging'] ?? false;
             }
         }
         return true;

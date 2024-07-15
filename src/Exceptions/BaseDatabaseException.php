@@ -14,7 +14,7 @@
  *
  **/
 
-namespace Porm\exceptions;
+namespace Porm\Exceptions;
 
 use Throwable;
 

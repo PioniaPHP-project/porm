@@ -14,12 +14,12 @@
  *
  **/
 
-namespace Porm\core;
+namespace Porm\Core;
 
 use Exception;
 use PDO;
 use PDOStatement;
-use Porm\exceptions\BaseDatabaseException;
+use Porm\Exceptions\BaseDatabaseException;
 
 /**
  */
@@ -38,7 +38,7 @@ class Database
     private ?PDO $pdo = null;
 
     /**
-     * This is the database connection to use, default is db
+     * This is the Database connection to use, default is db
      * @var ?string
      */
     public ?string $using = 'db';
@@ -64,7 +64,7 @@ class Database
     }
 
     /**
-     * Resolves the database connection to use. If the connection is passed, it will use that connection. If the options are passed, it will use those options. If the pdo is passed, it will use that pdo.
+     * Resolves the Database connection to use. If the connection is passed, it will use that connection. If the options are passed, it will use those options. If the pdo is passed, it will use that pdo.
      * If all are passed, it will use the pdo connection and ignore the rest.
      * If none are passed, it will use the default connection which is 'db'.
      *
@@ -90,7 +90,6 @@ class Database
         if ($options) {
             $this->options = array_merge($this->options, $options);
         }
-
         if ($this->using) {
             try {
                 $this->options = array_merge(Utilities::getAllSettingsUnderSection($this->using), $this->options);
@@ -143,7 +142,7 @@ class Database
     /**
      * Gives you access to the underlying medoo object and pdo object
      * @example ```php
-     * $data = $database->query("SELECT email FROM account")->fetchAll();
+     * $data = $Database->query("SELECT email FROM account")->fetchAll();
      * var_dump($data);
      * ```
      * @param string $query
@@ -189,7 +188,7 @@ class Database
     }
 
     /**
-     * This is a static method to use a database connection. It will return a new Database instance with the connection passed.
+     * This is a static method to use a Database connection. It will return a new Database instance with the connection passed.
      * @param string|null $databaseConnection
      * @return Database
      * @throws Exception

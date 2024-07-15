@@ -14,16 +14,16 @@
  *
  **/
 
-namespace Porm\database\utils;
+namespace Porm\Database\utils;
 
 use Exception;
 use Medoo\Raw;
 use PDOStatement;
-use Porm\core\Core;
-use Porm\core\Database;
-use Porm\database\aggregation\AggregateTrait;
-use Porm\database\builders\Builder;
-use Porm\database\builders\PormObject;
+use Porm\Core\Core;
+use Porm\Core\Database;
+use Porm\Database\aggregation\AggregateTrait;
+use Porm\Database\builders\Builder;
+use Porm\Database\builders\PormObject;
 
 trait TableLevelQueryTrait
 {
@@ -164,7 +164,7 @@ trait TableLevelQueryTrait
 
 
     /**
-     * Fetches a single item from the database
+     * Fetches a single item from the Database
      *
      *
      *
@@ -229,7 +229,7 @@ trait TableLevelQueryTrait
     }
 
     /**
-     * This defines the table column names to return from the database
+     * This defines the table column names to return from the Database
      * @param string|array $columns The columns to select defaults to * for all.
      * @return PormObject The current Porm object
      * @throws Exception
@@ -251,8 +251,8 @@ trait TableLevelQueryTrait
     }
 
     /**
-     * This sets the connection to the database to use for the current query.
-     * It can be used to switch between database connections.
+     * This sets the connection to the Database to use for the current query.
+     * It can be used to switch between Database connections.
      *
      * @param string $connection The connection to use, defaults to 'db'
      * @throws Exception
@@ -267,7 +267,7 @@ trait TableLevelQueryTrait
 
 
     /**
-     * This sets up the database connection to use internally. It is called when the Porm class is being set up.
+     * This sets up the Database connection to use internally. It is called when the Porm class is being set up.
      * @throws Exception
      */
     private function reboot(): Core

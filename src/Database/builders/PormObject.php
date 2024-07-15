@@ -14,14 +14,14 @@
  *
  **/
 
-namespace Porm\database\builders;
+namespace Porm\Database\builders;
 
 use Exception;
-use Porm\core\Core;
-use Porm\core\Database;
-use Porm\database\aggregation\AggregateTrait;
-use Porm\database\utils\TableLevelQueryTrait;
-use Porm\exceptions\BaseDatabaseException;
+use Porm\Core\Core;
+use Porm\Core\Database;
+use Porm\Database\aggregation\AggregateTrait;
+use Porm\Database\utils\TableLevelQueryTrait;
+use Porm\Exceptions\BaseDatabaseException;
 use Porm\Porm;
 
 /**
@@ -30,7 +30,7 @@ use Porm\Porm;
 class PormObject extends Database
 {
     /**
-     * The database table to use
+     * The Database table to use
      * @var mixed
      */
     private ?string $table;
@@ -125,6 +125,24 @@ class PormObject extends Database
     public function getDatabase(): ?Core
     {
         return $this->database;
+    }
+
+    /**
+     * This assists to perform raw sql queries
+     * @throws Exception
+     */
+    public static function rawQuery(string $query, ?array $params = [], ?string $using = 'db'): mixed
+    {
+        $instance = self::from('', '', $using);
+        $queryable = $instance->raw($query, $params);
+        $results = $instance->database->query($queryable->value, $queryable->map)->fetchAll();
+
+        if (count($results) === 1) {
+            $instance->resultSet = $results[0];
+            return $instance->asObject();
+        }
+        $instance->resultSet = $results;
+        return $instance->resultSet;
     }
 
 

@@ -14,19 +14,14 @@
  *
  **/
 
-namespace Porm\core;
+namespace Porm\Core;
 
-use Medoo\Medoo;
-
-class Core extends Medoo
+abstract class ContractBuilder
 {
-    public function __construct($options = null)
+    public static function builder(...$args): static
     {
-        parent::__construct($options);
+        return new static(...$args);
     }
 
-    public static function canLog()
-    {
-        return Utilities::canLog();
-    }
+    abstract public function build(): mixed;
 }

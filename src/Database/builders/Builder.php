@@ -14,12 +14,12 @@
  *
  **/
 
-namespace Porm\database\builders;
+namespace Porm\Database\builders;
 
-use Porm\core\ContractBuilder;
-use Porm\core\Core;
-use Porm\database\aggregation\AggregateTrait;
-use Porm\database\utils\ParseTrait;
+use Porm\Core\ContractBuilder;
+use Porm\Core\Core;
+use Porm\Database\aggregation\AggregateTrait;
+use Porm\Database\utils\ParseTrait;
 
 class Builder extends ContractBuilder
 {
@@ -47,7 +47,7 @@ class Builder extends ContractBuilder
     }
 
     /**
-     * Returns one item from the database
+     * Returns one item from the Database
      * @param array|int|null $where
      * @return object
      *
