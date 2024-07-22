@@ -51,7 +51,7 @@ class Builder extends ContractBuilder
     /**
      * Returns one item from the Database
      * @param array|int|null $where
-     * @return object
+     * @return object|null
      *
      * @example ```php
      * $row = Table::from('user')
