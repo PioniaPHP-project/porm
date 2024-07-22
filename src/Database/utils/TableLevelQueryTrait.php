@@ -17,7 +17,7 @@
 namespace Porm\Database\utils;
 
 use Exception;
-use Medoo\Raw;
+use Porm\Core\Raw;
 use PDOStatement;
 use Porm\Core\Core;
 use Porm\Core\Database;

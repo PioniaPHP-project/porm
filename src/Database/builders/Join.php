@@ -21,6 +21,9 @@ use Porm\Core\Core;
 use Porm\Database\utils\FilterTrait;
 use Porm\Database\utils\JoinParseTrait;
 
+/**
+ * Builds relationships across multiple tables.
+ */
 class Join extends ContractBuilder
 {
     private string $table;
@@ -35,6 +38,10 @@ class Join extends ContractBuilder
      */
     private string|array $columns;
 
+    /**
+     * List of all joins that are about to be applied.These are in a medoo format.
+     * @var array
+     */
     private array $joins = [];
 
     use JoinParseTrait;

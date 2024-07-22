@@ -16,15 +16,22 @@
 
 namespace Porm\Core;
 
-class Core extends Db
+/**
+ * The Medoo raw object.
+ */
+class Raw
 {
-    public function __construct($options = null)
-    {
-        parent::__construct($options);
-    }
+    /**
+     * The array of mapping data for the raw string.
+     *
+     * @var array
+     */
+    public $map;
 
-    public static function canLog(): bool
-    {
-        return Utilities::canLog();
-    }
+    /**
+     * The raw string.
+     *
+     * @var string
+     */
+    public $value;
 }

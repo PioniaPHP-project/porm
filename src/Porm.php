@@ -18,14 +18,13 @@ declare(strict_types=1);
 
 namespace Porm;
 
-use Medoo\Medoo;
 use Porm\database\builders\PormObject;
 
 /**
  * This should the preferred way to interact with the Database in the Pionia Framework. It is a wrapper around the Medoo library.
  *
  * @see PormObject for the methods available to you.
- * @see Medoo for the underlying implementation.
+ * @see Db for the underlying implementation.
  * @package Porm
  */
 class Porm extends PormObject
