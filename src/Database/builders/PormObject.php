@@ -82,6 +82,11 @@ class PormObject extends Database
 
     }
 
+    public function logs()
+    {
+        return $this->database->log();
+    }
+
     /**
      * This sets the table to use
      *

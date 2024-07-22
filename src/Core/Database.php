@@ -112,7 +112,7 @@ class Database
      */
     protected static function builder(?string $databaseConnection = null, ?array $options = null, ?PDO $pdo = null): Core
     {
-        $current = new Database(null, $options, $pdo);
+        $current = new Database($databaseConnection, $options, $pdo);
         $current->database = new Core($current->options);
         return $current->database;
     }

@@ -23,6 +23,7 @@ use Porm\Core\Core;
 use Porm\Core\Database;
 use Porm\Database\aggregation\AggregateTrait;
 use Porm\Database\builders\Builder;
+use Porm\Database\builders\Join;
 use Porm\Database\builders\PormObject;
 
 trait TableLevelQueryTrait
@@ -230,6 +231,8 @@ trait TableLevelQueryTrait
 
     /**
      * This defines the table column names to return from the Database
+     *
+     * If you're in join mode, then all ambigous columns should define the table as an alias
      * @param string|array $columns The columns to select defaults to * for all.
      * @return PormObject The current Porm object
      * @throws Exception
@@ -238,6 +241,14 @@ trait TableLevelQueryTrait
      *   $res1 = Porm::from('users')->columns('first_name')->get(1); // fetches the first name of the user with id 1
      *   $res2 = Porm::from('users')->columns(['first_name', 'last_name'])->get(1); // fetches the first name and last name of the user with id 1
      *   $res3 = Porm::from('users')->columns(['first_name', 'last_name'])->filter(['last_name' => 'Pionia'])->all(); // fetches the first name and last name of all users with last name Pionia
+     *
+     *
+     * // In joins
+     *
+     *  $res4 = Porm::from("users", "u")
+     * ->columns(["u.id", "role_name", "role.created_at"])
+     * ->join()->left("role", [u.role_id => id])
+     * ->all();
      * ```
      */
     public function columns(string|array $columns = "*"): static
@@ -328,5 +339,14 @@ trait TableLevelQueryTrait
     public function deleteById(string|int $id, ?string $idField = 'id'): ?PDOStatement
     {
         return $this->delete($id, $idField);
+    }
+
+    public function join(?array $where = null)
+    {
+        if ($where) {
+            $this->where = array_merge($this->where, $where);
+        }
+        return Join::builder($this->table, $this->database, $this->columns, $this->where)
+            ->build();
     }
 }

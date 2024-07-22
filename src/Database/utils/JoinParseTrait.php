@@ -16,23 +16,12 @@
 
 namespace Porm\Database\utils;
 
-use PDOStatement;
-
-trait ParseTrait
+trait JoinParseTrait
 {
 
     private function runSelect(?callable $callback): ?array
     {
-
-        if ($callback) {
-            return $this->database->select($this->table, $this->columns, $this->where, $callback);
-        }
-        return $this->database->select($this->table, $this->columns, $this->where);
-    }
-
-    private function runGet(): ?array
-    {
-        return $this->database->get($this->table, $this->columns, $this->where);
+        return $this->database->select($this->table, $this->joins, $this->columns, $this->where, $callback);
     }
 
     /**
@@ -65,21 +54,43 @@ trait ParseTrait
         return $this;
     }
 
-    /**
-     * @param int|array|string $where
-     * @param string|null $idField
-     * @return PDOStatement|null
-     * @example ```php
-     *   $res1 = Porm::from('users')->delete(1); // deletes a user with id 1
-     *   $res2 = Porm::from('users')->delete(['name' => 'John']); // deletes a user with name John
-     * ```
-     */
-    public function delete(int|array|string $where, ?string $idField = 'id'): ?PDOStatement
+    private function join(string $joinTable, string $alias, string|array $on_or_using, string $joinType,): static
     {
-        if (!is_array($where)) {
-            $where = [$idField => $where];
+        $joinTable = $joinTable . "(" . $alias . ")";
+        $finalJoinTable = $joinType . $joinTable;
+        $this->joins[$finalJoinTable] = $on_or_using;
+        return $this;
+    }
+
+    public function inner($table, string|array $on_or_using, ?string $alias = null): static
+    {
+        if (!$alias) {
+            $alias = $table;
         }
-        $this->where = array_merge($this->where, $where);
-        return $this->database->delete($this->table, $this->where);
+        return $this->join($table, $alias, $on_or_using, "[><]");
+    }
+
+    public function left($table, string|array $on_or_using, ?string $alias = null): static
+    {
+        if (!$alias) {
+            $alias = $table;
+        }
+        return $this->join($table, $alias, $on_or_using, "[>]");
+    }
+
+    public function right($table, string|array $on_or_using, ?string $alias = null): static
+    {
+        if (!$alias) {
+            $alias = $table;
+        }
+        return $this->join($table, $alias, $on_or_using, "[<]");
+    }
+
+    public function full($table, string|array $on_or_using, ?string $alias = null): static
+    {
+        if (!$alias) {
+            $alias = $table;
+        }
+        return $this->join($table, $alias, $on_or_using, "[<>]");
     }
 }

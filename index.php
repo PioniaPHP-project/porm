@@ -14,12 +14,10 @@
  *
  **/
 
-//there shall just be the tests
 if (!defined("BASEPATH")) {
     define('BASEPATH', __DIR__);
 }
 
-// set our settings globally
 if (!defined('SETTINGS')) {
     define('SETTINGS', BASEPATH . '/settings.ini');
 }
