@@ -1,6 +1,7 @@
 <component name="CopyrightManager">
   <copyright>
-    <option name="notice" value="PORM - Database querying tool for pionia framework.&#10;&#10;This package can be used as is or with the Pionia Framework. Anyone can reproduce and update this as they see fit.&#10;&#10;@copyright &amp;#36;originalComment.match(&quot;Copyright \(c\) (\d+)&quot;, 1, &quot;-&quot;, &quot;&amp;#36;today.year&quot;)&amp;#36;today.year,  Pionia Project - Jet Ezra&#10;&#10;@author Jet Ezra&#10;@version 1.0.0&#10;@link https://pionia.netlify.app/&#10;@license https://opensource.org/licenses/MIT&#10;" />
+    <option name="allowReplaceRegexp" value="true" />
+    <option name="notice" value="PORM - Database querying tool for pionia framework.&#10;&#10;This package can be used as is or with the Pionia Framework. Anyone can reproduce and update this as they see fit.&#10;&#10;@copyright &amp;#36;originalComment.match(&quot;Copyright \(c\) (\d+)&quot;, 1, &quot;-&quot;, &quot;&amp;#36;today.year&quot;)&amp;#36;today.year,  Pionia Project - Jet Ezra&#10;&#10;@author Jet Ezra&#10;@version 1.0.6&#10;@link https://pionia.netlify.app/&#10;@license https://opensource.org/licenses/MIT&#10;" />
     <option name="myName" value="porm - Pionia PORM" />
   </copyright>
 </component>

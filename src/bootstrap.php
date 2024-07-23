@@ -8,7 +8,7 @@
  * @copyright 2024,  Pionia Project - Jet Ezra
  *
  * @author Jet Ezra
- * @version 1.0.0
+ * @version 1.0.6
  * @link https://pionia.netlify.app/
  * @license https://opensource.org/licenses/MIT
  *

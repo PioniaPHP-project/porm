@@ -68,4 +68,18 @@ class Join extends ContractBuilder
     {
         return $this;
     }
+
+    /**
+     * @param string|null $column
+     * @param array|null $where
+     * @return int|null
+     * @see Core::count()
+     */
+    public function count(?string $column = "*", ?array $where = null): ?int
+    {
+        if (is_array($where)) {
+            $this->where = array_merge($this->where, $where);
+        }
+        return $this->database->count($this->table, $this->joins, $column, $this->where);
+    }
 }

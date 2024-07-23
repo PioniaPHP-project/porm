@@ -29,6 +29,8 @@ use Porm\Porm;
  */
 class PormObject extends Database
 {
+    public static string $pormVersion = "1.0.6";
+
     /**
      * The Database table to use
      * @var mixed
@@ -59,7 +61,6 @@ class PormObject extends Database
      * @var true Lock out the use of raw queries
      */
     private bool $preventRaw = false;
-
     private array $where = [];
 
     use TableLevelQueryTrait;
