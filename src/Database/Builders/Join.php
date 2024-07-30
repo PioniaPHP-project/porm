@@ -14,12 +14,12 @@
  *
  **/
 
-namespace Porm\Database\builders;
+namespace Porm\Database\Builders;
 
 use Porm\Core\ContractBuilder;
 use Porm\Core\Core;
-use Porm\Database\utils\FilterTrait;
-use Porm\Database\utils\JoinParseTrait;
+use Porm\Database\Utils\FilterTrait;
+use Porm\Database\Utils\JoinParseTrait;
 
 /**
  * Builds relationships across multiple tables.

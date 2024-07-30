@@ -14,7 +14,7 @@
  *
  **/
 
-namespace Porm\Database\utils;
+namespace Porm\Database\Utils;
 
 trait FilterTrait
 {

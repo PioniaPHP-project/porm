@@ -14,7 +14,7 @@
  *
  **/
 
-namespace Porm\Database\builders;
+namespace Porm\Database\Builders;
 
 use Porm\Core\ContractBuilder;
 use Ramsey\Uuid\Nonstandard\Uuid;

@@ -14,17 +14,17 @@
  *
  **/
 
-namespace Porm\Database\utils;
+namespace Porm\Database\Utils;
 
 use Exception;
 use Porm\Core\Raw;
 use PDOStatement;
 use Porm\Core\Core;
 use Porm\Core\Database;
-use Porm\Database\aggregation\AggregateTrait;
-use Porm\Database\builders\Builder;
-use Porm\Database\builders\Join;
-use Porm\Database\builders\PormObject;
+use Porm\Database\Aggregation\AggregateTrait;
+use Porm\Database\Builders\Builder;
+use Porm\Database\Builders\Join;
+use Porm\Database\Builders\PormObject;
 
 trait TableLevelQueryTrait
 {
@@ -165,9 +165,12 @@ trait TableLevelQueryTrait
 
 
     /**
-     * Fetches a single item from the Database
+     * Fetches a single item from the Database.
      *
-     *
+     * If the where clause is not passed, it fetches the last item in the table.
+     * If the where clause is an integer, it fetches the item with the id.
+     * If the where clause is an array, it fetches the item that matches the where clause.
+     * If the where clause is null, it fetches the last item in the table.
      *
      * @param int|array|string|null $where
      * @param string|null $idField defaults to id, pass this if you want to use a different field as the id other than id
@@ -177,12 +180,17 @@ trait TableLevelQueryTrait
      *    $res1 = Porm::from('users')->get(1); // fetches a user with id 1
      *    $res2 = Porm::from('users')->get(['id' => 1]); // fetches a user with id 1
      *    $res3 = Porm::from('users')->get(['last_name' => 'Pionia', 'first_name'=>'Framework']); // fetches a user with last name Pionia and first_name as Framework
+     *   $res4 = Porm::from('users')->get(); // fetches the latest user in the table
      * ```
      */
-    public function get(int|array|string $where = null, ?string $idField = 'id'): object|array|null
+    public function get(int|array|string|null $where = null, ?string $idField = 'id'): object|array|null
     {
         $this->checkFilterMode("You cannot call `get()` at this point in the query, check the usage of the `get()`
          method in the query builder for " . $this->table);
+
+        if (!$where) {
+            $where = ['LIMIT' => 1, 'ORDER' => [$idField => 'DESC']];
+        }
 
         if (is_int($where) || is_string($where)) {
             $where = [$idField => $where];
@@ -341,7 +349,19 @@ trait TableLevelQueryTrait
         return $this->delete($id, $idField);
     }
 
-    public function join(?array $where = null)
+    /**
+     * Opens the portal to the joins builder. Once you call this, you can call the join methods
+     *
+     * @example ```php
+     * $res4 = Porm::from("users", "u")
+     * ->columns(["u.id", "role_name", "role.created_at"])
+     * ->join()->left("role", [u.role_id => id])
+     * ->all();
+     * ```
+     * @param array|null $where
+     * @return object|null
+     */
+    public function join(?array $where = null): ?object
     {
         if ($where) {
             $this->where = array_merge($this->where, $where);
@@ -349,4 +369,58 @@ trait TableLevelQueryTrait
         return Join::builder($this->table, $this->database, $this->columns, $this->where)
             ->build();
     }
+
+    /**
+     * This grabs the first [n] items from the Database based on the pkField given
+     * @param int|null $size The number of items to fetch
+     * @param array|null $where The where clause to use
+     * @param string $pkField The primary key field to use
+     * @return object|array|null
+     * @throws Exception
+     */
+    public function first(?int $size = 1, ?array $where = [], string $pkField = 'id'): null|object|array
+    {
+        $this->checkFilterMode("You cannot call `first()` at this point in the query, check the usage of the `first()`
+         method in the query builder for " . $this->table);
+        $this->where = array_merge($this->where, $where);
+        $this->where['LIMIT'] = $size;
+        $this->where['ORDER'] = [$pkField => 'DESC'];
+        if ($size > 1) {
+            $result = $this->runSelect(null);
+        } else {
+            $result = $this->runGet();
+        }
+        if (count($result) === 1) {
+            return $this->asObject();
+        }
+        return $result;
+    }
+
+    /**
+     * Grab the last item from the Database based on the pkField clause
+     * @param int|null $size The number of items to fetch
+     * @param array|null $where The where clause to use
+     * @param string $pkField The primary key field to use
+     * @return object|array|null
+     * @throws Exception
+     */
+    public function last(?int $size = 1, ?array $where = [], string $pkField = 'id'): object|array|null
+    {
+        $this->checkFilterMode("You cannot call `first()` at this point in the query, check the usage of the `first()`
+         method in the query builder for " . $this->table);
+        $this->where = array_merge($this->where, $where);
+        $this->where['LIMIT'] = $size;
+        $this->where['ORDER'] = [$pkField => 'ASC'];
+        if ($size > 1) {
+            $result = $this->runSelect(null);
+        } else {
+            $result = $this->runGet();
+        }
+        $this->resultSet = $result;
+        if (count($this->resultSet) === 1) {
+            return $this->asObject();
+        }
+        return $this->resultSet;
+    }
+
 }

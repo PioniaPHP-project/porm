@@ -14,13 +14,13 @@
  *
  **/
 
-namespace Porm\Database\builders;
+namespace Porm\Database\Builders;
 
 use Exception;
 use Porm\Core\Core;
 use Porm\Core\Database;
-use Porm\Database\aggregation\AggregateTrait;
-use Porm\Database\utils\TableLevelQueryTrait;
+use Porm\Database\Aggregation\AggregateTrait;
+use Porm\Database\Utils\TableLevelQueryTrait;
 use Porm\Exceptions\BaseDatabaseException;
 use Porm\Porm;
 

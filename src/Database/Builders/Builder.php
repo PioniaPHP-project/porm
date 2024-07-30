@@ -14,13 +14,13 @@
  *
  **/
 
-namespace Porm\Database\builders;
+namespace Porm\Database\Builders;
 
 use Porm\Core\ContractBuilder;
 use Porm\Core\Core;
-use Porm\Database\aggregation\AggregateTrait;
-use Porm\Database\utils\FilterTrait;
-use Porm\Database\utils\ParseTrait;
+use Porm\Database\Aggregation\AggregateTrait;
+use Porm\Database\Utils\FilterTrait;
+use Porm\Database\Utils\ParseTrait;
 
 class Builder extends ContractBuilder
 {

@@ -14,7 +14,7 @@
  *
  **/
 
-namespace Porm\Database\aggregation;
+namespace Porm\Database\Aggregation;
 
 trait AggregateTrait
 {

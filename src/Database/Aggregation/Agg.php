@@ -14,7 +14,7 @@
  *
  **/
 
-namespace Porm\Database\aggregation;
+namespace Porm\Database\Aggregation;
 
 use Exception;
 use Porm\Core\ContractBuilder;
