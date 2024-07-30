@@ -29,7 +29,7 @@ use Porm\Porm;
  */
 class PormObject extends Database
 {
-    public static string $pormVersion = "1.0.6";
+    public static string $pormVersion = "1.0.7";
 
     /**
      * The Database table to use
