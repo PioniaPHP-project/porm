@@ -24,7 +24,10 @@ use Porm\Core\Database;
 use Porm\Database\Aggregation\AggregateTrait;
 use Porm\Database\Builders\Builder;
 use Porm\Database\Builders\Join;
-use Porm\Database\Builders\PormObject;
+use Porm\Database\Builders\BaseBuilder;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 trait TableLevelQueryTrait
 {
@@ -117,8 +120,8 @@ trait TableLevelQueryTrait
         $this->checkFilterMode("You cannot save at this point in the query, check the usage of the `save()`
          method in the query builder for " . $this->table);
 
-        $this->reboot()->insert($this->table, $data);
-        $id = $this->reboot()->id();
+        $this->database->insert($this->table, $data);
+        $id = $this->database->id();
         return $this->get($id);
     }
 
@@ -206,10 +209,11 @@ trait TableLevelQueryTrait
 
     /**
      * @param string $query The query to run
-     * @param array $params The parameters to pass prepare along with the query
+     * @param array|null $params The parameters to pass prepare along with the query
+     * @return Raw
      * @throws Exception If we are in any other realm than RAW
      */
-    public function raw(string $query, array $params): Raw
+    public function raw(string $query, ?array $params = []): Raw
     {
         $this->checkFilterMode("You cannot run raw queries at this point in the query, 
         check the usage of the `raw()` method in the query builder for " . $this->table);
@@ -242,7 +246,7 @@ trait TableLevelQueryTrait
      *
      * If you're in join mode, then all ambigous columns should define the table as an alias
      * @param string|array $columns The columns to select defaults to * for all.
-     * @return PormObject The current Porm object
+     * @return BaseBuilder The current Porm object
      * @throws Exception
      *
      * @example ```php
@@ -273,33 +277,43 @@ trait TableLevelQueryTrait
      * This sets the connection to the Database to use for the current query.
      * It can be used to switch between Database connections.
      *
-     * @param string $connection The connection to use, defaults to 'db'
+     * @param string|Database|BaseBuilder|ContainerInterface $connection The connection to use, defaults to 'db'
+     * @return TableLevelQueryTrait
      * @throws Exception
      */
-    public function using(string $connection = 'db'): static
+    public function using(string|Database|BaseBuilder|ContainerInterface $connection = 'db', ?string $containerDbKey = null): static
     {
         $this->checkFilterMode('When cannot change the db connection while at this point of the query, 
         check the usage of `using() method in the query builder of `' . $this->table);
-        $this->using = $connection;
+
+        if ($connection instanceof Database) {
+            $this->database = $connection;
+        } else if (is_string($connection)) {
+            $this->database = Database::builder($connection);
+        } else if ($connection instanceof BaseBuilder) {
+            $this->database = $connection->database;
+        } else if ($connection instanceof ContainerInterface && $containerDbKey) {
+            $this->database = $connection->get($containerDbKey);
+        }
         return $this;
     }
 
 
-    /**
-     * This sets up the Database connection to use internally. It is called when the Porm class is being set up.
-     * @throws Exception
-     */
-    private function reboot(): Core
-    {
-        if ($this->database) {
-            return $this->database;
-        }
-        if ($this->using) {
-            $this->database = Database::builder($this->using);
-        }
-        $this->database = Database::builder();
-        return $this->database;
-    }
+//    /**
+//     * This sets up the Database connection to use internally. It is called when the Porm class is being set up.
+//     * @throws Exception
+//     */
+//    private function reboot(): Core
+//    {
+//        if ($this->database) {
+//            return $this->database;
+//        }
+//        if ($this->using) {
+//            $this->database = Database::builder($this->using);
+//        }
+//        $this->database = Database::builder();
+//        return $this->database;
+//    }
 
     /**
      * This deletes all items that match the where clause

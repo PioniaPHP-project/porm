@@ -18,6 +18,8 @@ namespace Porm\Core;
 
 class Core extends Db
 {
+    protected $logs = [];
+
     public function __construct($options = null)
     {
         parent::__construct($options);

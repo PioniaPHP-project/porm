@@ -22,32 +22,50 @@ use Porm\Core\Database;
 use Porm\Database\Aggregation\AggregateTrait;
 use Porm\Database\Utils\TableLevelQueryTrait;
 use Porm\Exceptions\BaseDatabaseException;
-use Porm\Porm;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\ContainerInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 /**
- * This should not be worked with directly, use the Porm class instead.
+ * Provides a basis for other query builders to base on.
+ *
+ * @property Database $database The Database object to use
  */
-class PormObject extends Database
+class BaseBuilder
 {
-    public static string $pormVersion = "1.0.7";
+    /**
+     * The version of the Porm package
+     * @var string
+     */
+    public const PORM_VERSION = "1.0.8";
 
     /**
-     * The Database table to use
+     * The Database object to use
+     * @var mixed
+     */
+    public Database $database;
+
+    /**
+     * The Database table to use. This is for interoperability with other versions of Porm
      * @var mixed
      */
     private ?string $table;
+
     /**
      * @var string|null The alias to use, will defualt to the table name provided.
      */
     private ?string $alias;
+
     /**
      * @var bool Lock out the use of filter
      */
     private bool $preventHas = false;
+
     /**
      * @var bool Lock out the use of any other method other than filter
      */
     private bool $allowFilterOnly = false;
+
     /**
      * @var mixed The result set to call asObject and asJson on.
      */
@@ -61,31 +79,77 @@ class PormObject extends Database
      * @var true Lock out the use of raw queries
      */
     private bool $preventRaw = false;
+
     private array $where = [];
 
     use TableLevelQueryTrait;
+
     use AggregateTrait;
 
-    public function __construct($table, ?string $alias = null, ?string $using = null)
+
+    public function __construct(ContainerInterface|Database|string|null $connection = 'db', ?string $containDbKey = 'database')
     {
-        $this->using = $using;
-
-        parent::__construct($this->using);
-
-        $this->alias = $alias;
-
-        $this->table = $this->alias ? $table . ' (' . $this->alias . ')' : $table;
-
-        // attempt to reconnect if the connection is lost
-        if (!$this->database) {
-            $this->reboot();
+        if ($connection instanceof ContainerInterface && $containDbKey) {
+            $this->database = $connection->get($containDbKey);
         }
 
+        $this->setup($connection);
     }
 
-    public function logs()
+    /**
+     * This grabs the database connection from the container if we are using a container
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function fromContainer(ContainerInterface $container, ?string $containDbKey = 'database'): ?BaseBuilder
+    {
+        if ($container->has($containDbKey)) {
+            $this->database = $container->get($containDbKey);
+            return $this;
+        }
+        return null;
+    }
+
+    /**
+     * Sets up the database connection
+     * @param mixed $connection
+     */
+    protected function setup(mixed $connection): void
+    {
+        if (!$connection) {
+            $this->database = Database::builder('db');
+        } else if (is_string($connection)) {
+            $this->database = Database::builder($connection);
+        } else if ($connection instanceof \PDO) {
+            $this->database = Database::builder(null, null, $connection);
+        } else {
+            if (is_array($connection)) {
+                $this->database = Database::builder(null, $connection);
+            } else {
+                $this->database = $connection;
+            }
+        }
+    }
+
+    /**
+     * Return all executed queries.
+     *
+     * This function will only return all records if set `logging => true` on initialization, otherwise it will only return one last record by default.
+     * @return array The columns to select
+     */
+    public function logs(): array
     {
         return $this->database->log();
+    }
+
+    /**
+     * Logs the last query that was run
+     *
+     * @return string|null The last query that was run
+     */
+    public function logLastQuery(): ?string
+    {
+        return $this->database->last();
     }
 
     /**
@@ -102,10 +166,13 @@ class PormObject extends Database
      * ```
      *
      */
-    public static function from(string $table, ?string $alias = null, ?string $using = null): Porm
+    public static function from(string $table, ?string $alias = null, ?string $using = null): BaseBuilder
     {
         try {
-            return new Porm($table, $alias, $using);
+            $obj = new static($using);
+            $obj->alias = $alias;
+            $obj->table = $obj->alias ? $table . ' (' . $obj->alias . ')' : $table;
+            return $obj;
         } catch (Exception $e) {
             throw new BaseDatabaseException($e->getMessage());
         }
@@ -117,18 +184,18 @@ class PormObject extends Database
      * @param string $table
      * @param string|null $alias
      * @param string|null $using
-     * @return Porm
+     * @return BaseBuilder
      * @throws BaseDatabaseException
      * @since v1.0.2 You can this method instead of from(), but this is more readable
      * @see from()
      */
-    public static function table(string $table, ?string $alias = null, ?string $using = null): Porm
+    public static function table(string $table, ?string $alias = null, ?string $using = null): BaseBuilder
     {
         return self::from($table, $alias, $using);
     }
 
 
-    public function getDatabase(): ?Core
+    public function getDatabase(): ?Database
     {
         return $this->database;
     }
@@ -139,16 +206,14 @@ class PormObject extends Database
      */
     public static function rawQuery(string $query, ?array $params = [], ?string $using = 'db'): mixed
     {
-        $instance = self::from('', '', $using);
+        $instance = self::table('dummy', 'dummy', $using);
         $queryable = $instance->raw($query, $params);
         $results = $instance->database->query($queryable->value, $queryable->map)->fetchAll();
-
         if (count($results) === 1) {
             $instance->resultSet = $results[0];
             return $instance->asObject();
         }
-        $instance->resultSet = $results;
-        return $instance->resultSet;
+        return $results;
     }
 
 

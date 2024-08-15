@@ -510,7 +510,6 @@ class Db
                 $this->debugLogs[] = $this->generate($statement, $map);
                 return null;
             }
-
             echo $this->generate($statement, $map);
 
             $this->debugMode = false;
@@ -520,6 +519,9 @@ class Db
 
         if ($this->logging) {
             $this->logs[] = [$statement, $map];
+            if (defined("logger")) {
+                logger($this->generate($statement, $map));
+            }
         } else {
             $this->logs = [[$statement, $map]];
         }

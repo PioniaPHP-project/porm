@@ -22,4 +22,4 @@ if (!defined('SETTINGS')) {
     define('SETTINGS', BASEPATH . '/settings.ini');
 }
 
-require_once BASEPATH . '/src/bootstrap.php';
+require_once './vendor/autoload.php';

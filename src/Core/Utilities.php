@@ -31,10 +31,10 @@ class Utilities
     {
         $config = self::getSettings();
 
-        if (!isset($config[$section])) {
+        if (!isset($config[ucfirst($section)]) && !isset($config[strtolower($section)])) {
             return [];
         }
-        return $config[$section];
+        return $config[ucfirst($section)] ?? $config[strtolower($section)];
     }
 
     public static function getSetting($section, $key)

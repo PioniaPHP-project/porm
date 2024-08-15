@@ -18,15 +18,15 @@ declare(strict_types=1);
 
 namespace Porm;
 
-use Porm\Database\Builders\PormObject;
+use Porm\Database\Builders\BaseBuilder;
 
 /**
  * This should the preferred way to interact with the Database in the Pionia Framework. It is a wrapper around the Medoo library.
  *
- * @see PormObject for the methods available to you.
+ * @see BaseBuilder for the methods available to you.
  * @see Db for the underlying implementation.
  * @package Porm
  */
-class Porm extends PormObject
+class Porm extends BaseBuilder
 {
 }

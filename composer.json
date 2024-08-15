@@ -15,7 +15,8 @@
   "type": "library",
   "require": {
     "ext-pdo": "*",
-    "ramsey/uuid": "^4.7"
+    "ramsey/uuid": "^4.7",
+    "psr/container": "^2.0"
   },
   "license": "MIT",
   "autoload": {

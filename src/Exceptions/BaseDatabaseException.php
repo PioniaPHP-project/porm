@@ -16,6 +16,7 @@
 
 namespace Porm\Exceptions;
 
+use ReturnTypeWillChange;
 use Throwable;
 
 /**

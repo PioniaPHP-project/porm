@@ -26,12 +26,12 @@ class Raw
      *
      * @var array
      */
-    public $map;
+    public array $map;
 
     /**
      * The raw string.
      *
      * @var string
      */
-    public $value;
+    public string $value;
 }
