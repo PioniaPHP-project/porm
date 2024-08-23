@@ -16,9 +16,10 @@
 
 namespace Porm\Database\Aggregation;
 
+use Core;
 use Exception;
 use Porm\Core\ContractBuilder;
-use Porm\Core\Core;
+use Porm\Core\Database;
 
 /**
  * Aggregate functions for the PORM library.
@@ -52,7 +53,7 @@ class Agg extends ContractBuilder
      */
     public function random(string $columnName): Agg
     {
-        $arg = [$columnName => Core::raw("RAND()")];
+        $arg = [$columnName => Database::raw("RAND()")];
         $this->aggregated = array_merge($this->aggregated, $arg);
         return $this;
     }
@@ -65,7 +66,7 @@ class Agg extends ContractBuilder
      */
     public function sum(string $columName, string $column): Agg
     {
-        $arg = [$columName => Core::raw("SUM(<$column>)")];
+        $arg = [$columName => Database::raw("SUM(<$column>)")];
         $this->aggregated = array_merge($this->aggregated, $arg);
         return $this;
     }
@@ -78,7 +79,7 @@ class Agg extends ContractBuilder
      */
     public function avg(string $columName, string $column): Agg
     {
-        $arg = [$columName => Core::raw("AVG(<$column>)")];
+        $arg = [$columName => Database::raw("AVG(<$column>)")];
         $this->aggregated = array_merge($this->aggregated, $arg);
         return $this;
     }
@@ -91,7 +92,7 @@ class Agg extends ContractBuilder
      */
     public function max(string $columnName, string $column): Agg
     {
-        $arg = [$columnName => Core::raw("MAX(<$column>)")];
+        $arg = [$columnName => Database::raw("MAX(<$column>)")];
         $this->aggregated = array_merge($this->aggregated, $arg);
         return $this;
     }
@@ -104,7 +105,7 @@ class Agg extends ContractBuilder
      */
     public function now(string $columName): Agg
     {
-        $arg = [$columName => Core::raw("NOW()")];
+        $arg = [$columName => Database::raw("NOW()")];
         $this->aggregated = array_merge($this->aggregated, $arg);
         return $this;
     }
@@ -119,7 +120,7 @@ class Agg extends ContractBuilder
     public function uuid(string $columnName, ?string $uuidString): Agg
     {
         if (!$uuidString) {
-            $uuidString = Core::raw("UUID()");
+            $uuidString = Database::raw("UUID()");
         }
         $arg = [$columnName => $uuidString];
         $this->aggregated = array_merge($this->aggregated, $arg);

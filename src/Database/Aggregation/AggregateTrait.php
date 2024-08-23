@@ -16,13 +16,16 @@
 
 namespace Porm\Database\Aggregation;
 
+
+use Porm\Core\Database;
+
 trait AggregateTrait
 {
     /**
      * @param string|null $column
      * @param array|null $where
      * @return int|null
-     * @see Core::count()
+     * @see Database::count()
      */
     public function count(?string $column = null, ?array $where = null): ?int
     {
@@ -36,7 +39,7 @@ trait AggregateTrait
      * @param string $column
      * @param array|null $where
      * @return string|null
-     * @see Core::sum()
+     * @see Database::sum()
      */
     public function sum(string $column, ?array $where): ?string
     {
@@ -48,7 +51,7 @@ trait AggregateTrait
      * @param string $column
      * @param array|null $where
      * @return string|null
-     * @see Core::avg()
+     * @see Database::avg()
      */
     public function avg(string $column, ?array $where): ?string
     {
@@ -60,7 +63,7 @@ trait AggregateTrait
      * @param string $column
      * @param array|null $where
      * @return string|null
-     * @see Core::max()
+     * @see Database::max()
      */
     public function max(string $column, ?array $where): ?string
     {
@@ -72,7 +75,7 @@ trait AggregateTrait
      * @param string $column
      * @param array|null $where
      * @return string|null
-     * @see Core::min()
+     * @see Database::min()
      */
     public function min(string $column, ?array $where): ?string
     {

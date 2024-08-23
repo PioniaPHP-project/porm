@@ -73,7 +73,7 @@ class Database extends Db
      * @param mixed $pdo
      * @throws Exception
      */
-    private static function configure(?string $connection = null, ?array $options = null, ?PDO $pdo = null): Database
+    private static function configure(?string $connection = null, ?array $options = null, ?PDO $pdo = null, ?string $dbFile = null): Database
     {
         $options = $options ?? [];
         // here we have a pdo object
@@ -84,7 +84,7 @@ class Database extends Db
 
         if ($connection) {
             try {
-                $options = array_merge($options, Utilities::getAllSettingsUnderSection($connection));
+                $options = array_merge($options, Utilities::getAllSettingsUnderSection($connection, $dbFile));
             } catch (Exception $e) {
                 throw new BaseDatabaseException("Database connection not found in settings.ini");
             }
@@ -103,9 +103,9 @@ class Database extends Db
      * @return Database
      * @throws Exception
      */
-    public static function builder(?string $databaseConnection = null, ?array $options = null, ?PDO $pdo = null): Database
+    public static function builder(?string $databaseConnection = null, ?array $options = null, ?PDO $pdo = null, ?string $dbSettingsIniFilepath = null): Database
     {
-        return self::configure($databaseConnection, $options, $pdo);
+        return self::configure($databaseConnection, $options, $pdo, $dbSettingsIniFilepath);
     }
 
 

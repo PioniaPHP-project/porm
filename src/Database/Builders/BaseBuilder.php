@@ -17,11 +17,9 @@
 namespace Porm\Database\Builders;
 
 use Exception;
-use Porm\Core\Core;
 use Porm\Core\Database;
 use Porm\Database\Aggregation\AggregateTrait;
 use Porm\Database\Utils\TableLevelQueryTrait;
-use Porm\Exceptions\BaseDatabaseException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -37,7 +35,14 @@ class BaseBuilder
      * The version of the Porm package
      * @var string
      */
-    public const PORM_VERSION = "1.0.8";
+    public const PORM_VERSION = "1.0.9";
+
+    private static ?BaseBuilder $instance = null;
+
+    /**
+     * @var string|null The database file to use
+     */
+    private ?string $dbFile = 'settings.ini';
 
     /**
      * The Database object to use
@@ -86,47 +91,58 @@ class BaseBuilder
 
     use AggregateTrait;
 
-
-    public function __construct(ContainerInterface|Database|string|null $connection = 'db', ?string $containDbKey = 'database')
-    {
-        if ($connection instanceof ContainerInterface && $containDbKey) {
-            $this->database = $connection->get($containDbKey);
-        }
-
-        $this->setup($connection);
-    }
+    /**
+     * The container to use
+     */
+    private ContainerInterface|Database|null|string $connection = null;
 
     /**
-     * This grabs the database connection from the container if we are using a container
-     * @throws ContainerExceptionInterface
-     * @throws NotFoundExceptionInterface
+     * @var string|null The container key to look for. This is for containerised environments
      */
-    public function fromContainer(ContainerInterface $container, ?string $containDbKey = 'database'): ?BaseBuilder
+    private ?string $containerkey;
+
+
+    public function __construct(ContainerInterface|Database|string|array|null $connection = 'db', ?string $containDbKey = 'database', ?string $dbFile = null)
     {
-        if ($container->has($containDbKey)) {
-            $this->database = $container->get($containDbKey);
-            return $this;
+        $this->connection = $connection;
+        $this->containerkey = $containDbKey;
+        if ($dbFile) {
+            $this->dbFile = $dbFile;
         }
-        return null;
+        $this->setup($connection);
     }
 
     /**
      * Sets up the database connection
      * @param mixed $connection
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws Exception
      */
     protected function setup(mixed $connection): void
     {
-        if (!$connection) {
-            $this->database = Database::builder('db');
-        } else if (is_string($connection)) {
-            $this->database = Database::builder($connection);
+        // if the connection came as a string, we will use that as the connection,
+        // probably its a section in the settings.ini file
+        if (is_string($connection)) {
+            $this->database = Database::builder($connection, null, null, $this->dbFile);
         } else if ($connection instanceof \PDO) {
-            $this->database = Database::builder(null, null, $connection);
+            // if the connection is a PDO object, we will use that as the connection
+            $this->database = Database::builder(null, null, $connection, $this->dbFile);
         } else {
+            // if the connection is an array, we will pass them along as options to the base Db object
             if (is_array($connection)) {
-                $this->database = Database::builder(null, $connection);
+                $this->database = Database::builder(null, $connection, null, $this->dbFile);
             } else {
-                $this->database = $connection;
+                // if the connection is a Database object, we will use that as the connection,
+                if ($connection instanceof Database) {
+                    $this->database = $connection;
+                } else if ($connection instanceof ContainerInterface && $this->containerkey) {
+                    // if the connection is a container, we will read the connection from the container
+                    $this->database = $connection->get($this->containerkey);
+                } else {
+                    // if the connection is null, we will use the default connection
+                    $this->database = Database::builder('db', null, null, $this->dbFile);
+                }
             }
         }
     }
@@ -157,41 +173,43 @@ class BaseBuilder
      *
      * @param string $table The table to use
      * @param string|null $alias The alias to use
-     * @param string|null $using The connection to use
+     * @param string|Database|array|null $using The connection to use, if null, it will use the default connection
      *
-     * @throws BaseDatabaseException
+     * @return BaseBuilder
      * @example ```php
      *     Table::from('user') // notice this here
      *       ->get(['last_name' => 'Pionia']);
      * ```
-     *
      */
-    public static function from(string $table, ?string $alias = null, ?string $using = null): BaseBuilder
+    public static function from(string $table, ?string $alias = null, string|null|Database|array $using = null): BaseBuilder
     {
-        try {
-            $obj = new static($using);
-            $obj->alias = $alias;
-            $obj->table = $obj->alias ? $table . ' (' . $obj->alias . ')' : $table;
-            return $obj;
-        } catch (Exception $e) {
-            throw new BaseDatabaseException($e->getMessage());
-        }
+        $obj = new static($using);
+        $obj->alias = $alias;
+        $obj->table = $obj->alias ? $table . ' (' . $obj->alias . ')' : $table;
+        return $obj;
     }
 
     /**
-     * This is for running queries. Should be called first
+     * This is for running queries in a containerised environment.
+     * This should be the preferred in frameworks like Pionia
      *
      * @param string $table
      * @param string|null $alias
      * @param string|null $using
      * @return BaseBuilder
-     * @throws BaseDatabaseException
-     * @since v1.0.2 You can this method instead of from(), but this is more readable
-     * @see from()
+     * @since v1.0.9 This method was updated to handle containerised environments only and should be used in frameworks like Pionia
+     * @see from() if you are not using a container
      */
-    public static function table(string $table, ?string $alias = null, ?string $using = null): BaseBuilder
+    public function table(string $table, ?string $alias = null, ?string $using = null): BaseBuilder
     {
-        return self::from($table, $alias, $using);
+        $this->alias = $alias;
+        $this->table = $this->alias ? $table . ' (' . $this->alias . ')' : $table;
+        if ($using) {
+            $this->setup($using);
+        } else {
+            $this->setup($this->connection);
+        }
+        return $this;
     }
 
 
@@ -206,7 +224,7 @@ class BaseBuilder
      */
     public static function rawQuery(string $query, ?array $params = [], ?string $using = 'db'): mixed
     {
-        $instance = self::table('dummy', 'dummy', $using);
+        $instance = (new BaseBuilder)->table('dummy', 'dummy', $using);
         $queryable = $instance->raw($query, $params);
         $results = $instance->database->query($queryable->value, $queryable->map)->fetchAll();
         if (count($results) === 1) {

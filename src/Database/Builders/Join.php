@@ -17,7 +17,7 @@
 namespace Porm\Database\Builders;
 
 use Porm\Core\ContractBuilder;
-use Porm\Core\Core;
+use Porm\Core\Database;
 use Porm\Database\Utils\FilterTrait;
 use Porm\Database\Utils\JoinParseTrait;
 
@@ -28,7 +28,7 @@ class Join extends ContractBuilder
 {
     private string $table;
 
-    private Core $database;
+    private Database $database;
 
     private bool $preventLimit = false;
 
@@ -47,7 +47,7 @@ class Join extends ContractBuilder
     use JoinParseTrait;
     use FilterTrait;
 
-    public function __construct($table, Core $database, $columns = "*", $where = [])
+    public function __construct($table, Database $database, $columns = "*", $where = [])
     {
         $this->table = $table;
         $this->database = $database;

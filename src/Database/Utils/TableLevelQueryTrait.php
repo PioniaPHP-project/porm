@@ -17,17 +17,14 @@
 namespace Porm\Database\Utils;
 
 use Exception;
-use Porm\Core\Raw;
 use PDOStatement;
-use Porm\Core\Core;
 use Porm\Core\Database;
+use Porm\Core\Raw;
 use Porm\Database\Aggregation\AggregateTrait;
+use Porm\Database\Builders\BaseBuilder;
 use Porm\Database\Builders\Builder;
 use Porm\Database\Builders\Join;
-use Porm\Database\Builders\BaseBuilder;
-use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
-use Psr\Container\NotFoundExceptionInterface;
 
 trait TableLevelQueryTrait
 {
@@ -279,7 +276,6 @@ trait TableLevelQueryTrait
      *
      * @param string|Database|BaseBuilder|ContainerInterface $connection The connection to use, defaults to 'db'
      * @return TableLevelQueryTrait
-     * @throws Exception
      */
     public function using(string|Database|BaseBuilder|ContainerInterface $connection = 'db', ?string $containerDbKey = null): static
     {

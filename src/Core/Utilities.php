@@ -18,8 +18,11 @@ namespace Porm\Core;
 
 class Utilities
 {
-    public static function getSettings(): array
+    public static function getSettings(?string $filePath): array
     {
+        if ($filePath) {
+            return parse_ini_file($filePath, true);
+        }
         if (!defined('SETTINGS')) {
             return [];
         }
@@ -27,9 +30,9 @@ class Utilities
         return parse_ini_file(SETTINGS, true);
     }
 
-    public static function getAllSettingsUnderSection($section)
+    public static function getAllSettingsUnderSection($section, ?string $filePath = null)
     {
-        $config = self::getSettings();
+        $config = self::getSettings($filePath);
 
         if (!isset($config[ucfirst($section)]) && !isset($config[strtolower($section)])) {
             return [];
