@@ -94,7 +94,7 @@ class BaseBuilder
     /**
      * The container to use
      */
-    private ContainerInterface|Database|null|string $connection = null;
+    private ContainerInterface|Database|null|string|array $connection = 'db';
 
     /**
      * @var string|null The container key to look for. This is for containerised environments
